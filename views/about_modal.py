@@ -1,6 +1,6 @@
-"""About Modal Dialog for Carnicería San Diego.
-Displays corporate identity, official symbol logo ('logoCompleto.png'),
-system diagnostics, and version info in Dark Theme.
+"""About Modal Dialog for XL Burguer.
+Displays corporate identity, official symbol logo ('XL_Burguer_completo.png'),
+system diagnostics, and version info in Dark Gourmet Theme.
 """
 
 import os
@@ -16,7 +16,7 @@ class AboutModal(ctk.CTkToplevel):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.title("Acerca de")
+        self.title("Acerca de - XL Burguer")
         self.configure(fg_color=DarkTheme.BG_MODAL)
         self.resizable(False, False)
 
@@ -36,15 +36,18 @@ class AboutModal(ctk.CTkToplevel):
         container = ctk.CTkFrame(self, fg_color=DarkTheme.BG_MODAL, corner_radius=0)
         container.pack(fill="both", expand=True, padx=28, pady=24)
 
-        # 1. Corporate Symbol Emblem ('logoCompleto.png' / 'logo San Diego')
-        logo_path = get_asset_path("logoCompleto.png")
+        # 1. Corporate Symbol Emblem ('XL_Burguer_completo.png' / 'logoCompleto.png')
+        logo_path = get_asset_path("XL_Burguer_completo.png")
         if not os.path.exists(logo_path):
-            logo_path = get_asset_path("logo San Diego")
+            logo_path = get_asset_path("logoCompleto.png")
         if os.path.exists(logo_path):
             try:
                 pil_logo = Image.open(logo_path).convert("RGBA")
-                # Aspect ratio ~1.076:1 -> 114x106
-                ctk_logo = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(114, 106))
+                # Maintain aspect ratio for square-ish container (~130x103)
+                aspect = pil_logo.size[0] / max(1, pil_logo.size[1])
+                target_w = int(105 * aspect)
+                target_h = 105
+                ctk_logo = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(target_w, target_h))
                 lbl_logo = ctk.CTkLabel(container, image=ctk_logo, text="")
                 lbl_logo.pack(pady=(4, 10))
             except Exception:
@@ -53,23 +56,23 @@ class AboutModal(ctk.CTkToplevel):
         # 2. Company & Product Titles
         ctk.CTkLabel(
             container,
-            text="CARNICERÍA SAN DIEGO",
-            font=ctk.CTkFont(family="Cambria", size=20, weight="bold", slant="italic"),
-            text_color="#C5A059"
+            text="XL BURGUER",
+            font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
+            text_color="#F59E0B"
         ).pack()
 
         ctk.CTkLabel(
             container,
-            text="SISTEMA DE PUNTO DE VENTA & GESTIÓN COMERCIAL",
-            font=ctk.CTkFont(family="Cambria", size=10, weight="bold", slant="italic"),
-            text_color="#C5A059"
+            text="SISTEMA DE PUNTO DE VENTA & CONTROL DE INVENTARIO",
+            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+            text_color="#CBD5E1"
         ).pack(pady=(2, 0))
 
         ctk.CTkLabel(
             container,
-            text="Villa de Leyva • Boyacá • Colombia",
-            font=ctk.CTkFont(family="Cambria", size=11, weight="bold", slant="italic"),
-            text_color="#C5A059"
+            text="Gestión de Recetas en Gramos • Operación 100% Local y Offline",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color="#94A3B8"
         ).pack(pady=(2, 14))
 
         ctk.CTkFrame(container, fg_color=DarkTheme.BORDER_SUBTLE, height=1).pack(fill="x", pady=(0, 14))
@@ -85,11 +88,12 @@ class AboutModal(ctk.CTkToplevel):
         info_card.pack(fill="x", pady=(0, 18), ipady=6, padx=4)
 
         specs = [
-            ("Versión del Sistema:", "2.1 (Dark Gourmet Edition)"),
-            ("Interfaz Gráfica:", "CustomTkinter + Touchscreen HMI (Dark Mode)"),
-            ("Base de Datos:", "SQLite3 Relacional (Local Offline)"),
-            ("Impresión Fiscal/POS:", "Ticket Térmico 40 Columnas (ESC/POS)"),
-            ("Control de Báscula:", "Driver Serial RS-232 / Emulador Activo"),
+            ("Versión del Sistema:", "3.0 (Fast Food Gourmet Edition)"),
+            ("Interfaz Gráfica:", "CustomTkinter + Touch HMI (Dark Mode)"),
+            ("Base de Datos:", "SQLite3 Relacional (Local Offline WAL)"),
+            ("Impresión Térmica:", "Ticket Monospaciado 40 Columnas (ESC/POS)"),
+            ("Control de Inventario:", "Ingredientes en Gramos (g) & Recetas"),
+            ("Integración de Báscula:", "Desactivada (Gramera no requerida)"),
         ]
 
         for label, val in specs:

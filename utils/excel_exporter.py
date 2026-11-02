@@ -1,4 +1,4 @@
-"""Excel Sales Report Exporter for Carnicería San Diego.
+"""Excel Sales Report Exporter for XL Burguer.
 Generates executive-styled .xlsx spreadsheets using openpyxl with clean obsidian & slate headers,
 accounting currency formatting ($ #,##0), auto-fitted columns, freeze panes, and =SUM() formulas.
 Designed to deliver a modern corporate report presentation without visual clutter.
@@ -21,7 +21,7 @@ def export_sales_to_excel(
     """Generate executive Excel report workbook from sales items list."""
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Ventas San Diego"
+    ws.title = "Ventas XL Burguer"
 
     # Ensure grid lines are visible
     ws.views.sheetView[0].showGridLines = True
@@ -73,7 +73,7 @@ def export_sales_to_excel(
     # ── 1. Main Title Banner (Row 1) ─────────────────────────────────────────
     ws.merge_cells("A1:J1")
     title_cell = ws["A1"]
-    title_cell.value = "CARNICERÍA SAN DIEGO - VILLA DE LEYVA"
+    title_cell.value = "XL BURGUER - SISTEMA POS & GESTIÓN"
     title_cell.font = title_font
     title_cell.fill = header_navy_fill
     title_cell.alignment = Alignment(horizontal="center", vertical="center")

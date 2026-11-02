@@ -43,11 +43,11 @@ class TestFunctionalityFixes(unittest.TestCase):
     def test_sqlite_normalize_text_query(self):
         """Verify SQLite NORMALIZE_TEXT custom function handles unaccented searches."""
         with get_db_connection() as conn:
-            # Search with accents or without accents should yield matching cuts
-            res1 = ProductModel.get_all(conn, search_query="lomo")
+            # Search with accents or without accents should yield matching products
+            res1 = ProductModel.get_all(conn, search_query="clasica")
             self.assertTrue(len(res1) > 0)
 
-            res2 = ProductModel.get_all(conn, search_query="LOMO")
+            res2 = ProductModel.get_all(conn, search_query="CLÁSICA")
             self.assertEqual(len(res1), len(res2))
 
             # Omnisearch by name via get_by_barcode_or_id

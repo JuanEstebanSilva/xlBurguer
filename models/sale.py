@@ -1,5 +1,6 @@
-"""Sales and Sale Items model for Carnicería San Diego.
-Implements ACID transactions for checkout, stock deduction, and sales reporting.
+"""Sales and Sale Items model for XL Burguer.
+Implements ACID transactions for checkout, recipe ingredient deductions in grams,
+stock deduction for standalone items, and sales reporting.
 """
 
 import re
@@ -108,22 +109,22 @@ class SaleModel:
     @staticmethod
     def generate_next_invoice_number(conn: sqlite3.Connection) -> str:
         """Generate non-reusable consecutive invoice number using the invoice_sequences table.
-        Format: SD-000001. Consecutive numbers are strictly monotonic and never reused on deletes.
+        Format: XL-000001. Consecutive numbers are strictly monotonic and never reused on deletes.
         """
         cursor = conn.cursor()
-        cursor.execute("SELECT last_number FROM invoice_sequences WHERE prefix = 'SD'")
+        cursor.execute("SELECT last_number FROM invoice_sequences WHERE prefix = 'XL'")
         row = cursor.fetchone()
         if not row:
             cursor.execute("SELECT MAX(id) as max_id FROM sales")
             m_row = cursor.fetchone()
             curr = m_row["max_id"] if (m_row and m_row["max_id"] is not None) else 0
-            cursor.execute("INSERT OR REPLACE INTO invoice_sequences (prefix, last_number) VALUES ('SD', ?)", (curr,))
+            cursor.execute("INSERT OR REPLACE INTO invoice_sequences (prefix, last_number) VALUES ('XL', ?)", (curr,))
 
-        cursor.execute("UPDATE invoice_sequences SET last_number = last_number + 1 WHERE prefix = 'SD'")
-        cursor.execute("SELECT last_number FROM invoice_sequences WHERE prefix = 'SD'")
+        cursor.execute("UPDATE invoice_sequences SET last_number = last_number + 1 WHERE prefix = 'XL'")
+        cursor.execute("SELECT last_number FROM invoice_sequences WHERE prefix = 'XL'")
         seq_row = cursor.fetchone()
         next_val = seq_row["last_number"] if seq_row else 1
-        return f"SD-{next_val:06d}"
+        return f"XL-{next_val:06d}"
 
     @staticmethod
     def process_sale(
@@ -205,6 +206,14 @@ class SaleModel:
             from models.customer import CustomerModel
             from models.product import format_stock_display
 
+            # Check if table ingredients exists in schema
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ingredients';")
+            has_ingredients_table = cursor.fetchone() is not None
+
+            # Aggregate ingredient requirements and direct product needs across cart items
+            needed_ingredients = {}  # ing_id: dict
+            needed_products_direct = {}  # prod_id: dict
+
             for item in cart_items:
                 cursor.execute(
                     "SELECT name, stock, sale_type, unit_measure, iva FROM products WHERE id = ?",
@@ -214,16 +223,45 @@ class SaleModel:
                 if not p_row:
                     raise ValueError(f"El producto con ID {item.product_id} ('{item.product_name}') no existe en el catálogo.")
 
-                cur_stk = p_row["stock"]
-                deduction = item.base_stock_deduction
+                # Check if product has associated recipes
+                recipes = []
+                if has_ingredients_table:
+                    cursor.execute(
+                        """
+                        SELECT pr.ingredient_id, pr.quantity_g, i.name as ing_name, i.stock_g
+                        FROM product_recipes pr
+                        JOIN ingredients i ON pr.ingredient_id = i.id
+                        WHERE pr.product_id = ?
+                        """,
+                        (item.product_id,)
+                    )
+                    recipes = cursor.fetchall()
 
-                # Stock verification (B7): warning or block if override disabled
-                if not allow_stock_override:
-                    if cur_stk <= 0:
-                        raise ValueError(f"El producto '{p_row['name']}' está agotado. No se puede realizar la venta.")
-                    if deduction > cur_stk:
-                        disp_stk = format_stock_display(cur_stk, p_row["sale_type"], p_row["unit_measure"])
-                        raise ValueError(f"Stock insuficiente para '{p_row['name']}'. Stock disponible: {disp_stk}.")
+                if recipes:
+                    item_qty = float(item.quantity)
+                    for r in recipes:
+                        ing_id = r["ingredient_id"]
+                        req_g = float(r["quantity_g"]) * item_qty
+                        if ing_id not in needed_ingredients:
+                            needed_ingredients[ing_id] = {
+                                "name": r["ing_name"],
+                                "required_g": 0.0,
+                                "stock_g": float(r["stock_g"]),
+                                "product_name": item.product_name
+                            }
+                        needed_ingredients[ing_id]["required_g"] += req_g
+                else:
+                    deduction = item.base_stock_deduction
+                    p_id = item.product_id
+                    if p_id not in needed_products_direct:
+                        needed_products_direct[p_id] = {
+                            "name": p_row["name"],
+                            "required": 0.0,
+                            "stock": float(p_row["stock"]),
+                            "sale_type": p_row["sale_type"],
+                            "unit_measure": p_row["unit_measure"]
+                        }
+                    needed_products_direct[p_id]["required"] += deduction
 
                 # Calculate item IVA (prices in retail include IVA)
                 item_iva_rate = float(p_row["iva"]) if ("iva" in p_row.keys() and p_row["iva"] is not None) else 0.0
@@ -234,7 +272,24 @@ class SaleModel:
                     item_iva_amt = 0.0
                 iva_total += item_iva_amt
 
-                prepared_items.append((item, p_row, deduction, item_iva_rate, item_iva_amt))
+                prepared_items.append((item, p_row, item.base_stock_deduction, item_iva_rate, item_iva_amt, recipes))
+
+            # Stock verification: block if override disabled
+            if not allow_stock_override:
+                for ing_id, ing_data in needed_ingredients.items():
+                    if ing_data["stock_g"] < ing_data["required_g"]:
+                        shortage_g = ing_data["required_g"] - ing_data["stock_g"]
+                        raise ValueError(
+                            f"Ingrediente insuficiente: '{ing_data['name']}'. "
+                            f"Disponible: {ing_data['stock_g']:,.0f} g, "
+                            f"Requerido: {ing_data['required_g']:,.0f} g, "
+                            f"Faltante: {shortage_g:,.0f} g."
+                        )
+
+                for p_id, p_data in needed_products_direct.items():
+                    if p_data["stock"] < p_data["required"]:
+                        disp_stk = format_stock_display(p_data["stock"], p_data["sale_type"], p_data["unit_measure"])
+                        raise ValueError(f"Stock insuficiente para '{p_data['name']}'. Stock disponible: {disp_stk}.")
 
             # 5. Insert Sale Header with customer, payment method, IVA, and status (B1, B5)
             cursor.execute(
@@ -248,18 +303,44 @@ class SaleModel:
             )
             sale_id = cursor.lastrowid
 
-            # 6. Insert items, deduct product stock honestly, and update fiado quota/debt
-            saved_items = []
-            for item, p_row, deduction, item_iva_rate, item_iva_amt in prepared_items:
-                # Deduct stock honestly (do NOT clamp to 0 with MAX(0, stock-deduction) to preserve negative deficits)
+            # 6. Deduct ingredients and standalone stock, insert items and log movements
+            # First, deduct aggregated ingredients
+            for ing_id, ing_data in needed_ingredients.items():
+                cursor.execute("SELECT stock_g FROM ingredients WHERE id = ?", (ing_id,))
+                cur_row = cursor.fetchone()
+                prev_g = float(cur_row["stock_g"]) if cur_row else 0.0
+                new_g = prev_g - ing_data["required_g"]
+                cursor.execute("UPDATE ingredients SET stock_g = ? WHERE id = ?", (new_g, ing_id))
                 cursor.execute(
                     """
-                    UPDATE products
-                    SET stock = stock - ?
-                    WHERE id = ?
+                    INSERT INTO inventory_movements (
+                        ingredient_id, movement_type, quantity, previous_stock, new_stock, reference_id, notes
+                    ) VALUES (?, 'VENTA', ?, ?, ?, ?, ?)
                     """,
-                    (deduction, item.product_id)
+                    (ing_id, ing_data["required_g"], prev_g, new_g, invoice_number, f"Consumo venta {invoice_number}")
                 )
+
+            # Deduct standalone direct products
+            for p_id, p_data in needed_products_direct.items():
+                cursor.execute("SELECT stock FROM products WHERE id = ?", (p_id,))
+                cur_row = cursor.fetchone()
+                prev_s = float(cur_row["stock"]) if cur_row else 0.0
+                new_s = prev_s - p_data["required"]
+                cursor.execute("UPDATE products SET stock = ? WHERE id = ?", (new_s, p_id))
+                cursor.execute(
+                    """
+                    INSERT INTO inventory_movements (
+                        product_id, movement_type, quantity, previous_stock, new_stock, reference_id, notes
+                    ) VALUES (?, 'VENTA', ?, ?, ?, ?, ?)
+                    """,
+                    (p_id, p_data["required"], prev_s, new_s, invoice_number, f"Venta directa {invoice_number}")
+                )
+
+            saved_items = []
+            for item, p_row, deduction, item_iva_rate, item_iva_amt, recipes in prepared_items:
+                # If product has no recipes and wasn't deducted in needed_products_direct, deduct now
+                if not recipes and item.product_id not in needed_products_direct:
+                    cursor.execute("UPDATE products SET stock = stock - ? WHERE id = ?", (deduction, item.product_id))
 
                 # If FIADO sale to customer, deduct from company quota
                 fiado_rem = None
@@ -383,21 +464,58 @@ class SaleModel:
             conn.execute("BEGIN IMMEDIATE;")
 
         try:
-            # 1. Revert product stocks based on sale_items
+            # 1. Revert product and ingredient stocks based on sale_items
             cursor.execute(
                 "SELECT product_id, quantity, unit_selected FROM sale_items WHERE sale_id = ?",
                 (sale_id,)
             )
             items = cursor.fetchall()
             for it in items:
-                cursor.execute("SELECT sale_type FROM products WHERE id = ?", (it["product_id"],))
-                p = cursor.fetchone()
-                if p:
-                    base_qty = convert_quantity_to_base(it["quantity"], it["unit_selected"], p["sale_type"])
-                    cursor.execute(
-                        "UPDATE products SET stock = stock + ? WHERE id = ?",
-                        (base_qty, it["product_id"])
-                    )
+                # Check if product has recipes
+                cursor.execute(
+                    """
+                    SELECT pr.ingredient_id, pr.quantity_g
+                    FROM product_recipes pr
+                    WHERE pr.product_id = ?
+                    """,
+                    (it["product_id"],)
+                )
+                rec_items = cursor.fetchall()
+                if rec_items:
+                    for rec in rec_items:
+                        ing_qty = float(rec["quantity_g"]) * float(it["quantity"])
+                        cursor.execute("SELECT stock_g FROM ingredients WHERE id = ?", (rec["ingredient_id"],))
+                        cur_r = cursor.fetchone()
+                        prev_g = float(cur_r["stock_g"]) if cur_r else 0.0
+                        new_g = prev_g + ing_qty
+                        cursor.execute("UPDATE ingredients SET stock_g = ? WHERE id = ?", (new_g, rec["ingredient_id"]))
+                        cursor.execute(
+                            """
+                            INSERT INTO inventory_movements (
+                                ingredient_id, movement_type, quantity, previous_stock, new_stock, reference_id, notes
+                            ) VALUES (?, 'AJUSTE', ?, ?, ?, ?, ?)
+                            """,
+                            (rec["ingredient_id"], ing_qty, prev_g, new_g, sale["invoice_number"], f"Restitución por anulación {sale['invoice_number']}")
+                        )
+                else:
+                    cursor.execute("SELECT sale_type, stock FROM products WHERE id = ?", (it["product_id"],))
+                    p = cursor.fetchone()
+                    if p:
+                        base_qty = convert_quantity_to_base(it["quantity"], it["unit_selected"], p["sale_type"])
+                        prev_s = float(p["stock"])
+                        new_s = prev_s + base_qty
+                        cursor.execute(
+                            "UPDATE products SET stock = ? WHERE id = ?",
+                            (new_s, it["product_id"])
+                        )
+                        cursor.execute(
+                            """
+                            INSERT INTO inventory_movements (
+                                product_id, movement_type, quantity, previous_stock, new_stock, reference_id, notes
+                            ) VALUES (?, 'AJUSTE', ?, ?, ?, ?, ?)
+                            """,
+                            (it["product_id"], base_qty, prev_s, new_s, sale["invoice_number"], f"Restitución por anulación {sale['invoice_number']}")
+                        )
 
             # 2. If FIADO, revert customer quota and portfolio debt
             p_method = (sale["payment_method"] or "EFECTIVO").upper()

@@ -90,12 +90,26 @@ class TestCorporateDiscountAndSingleAdmin(unittest.TestCase):
 
     def test_04_fiados_dashboard_modal(self):
         """Verify FiadosDashboardModal instantiates and renders company data cleanly."""
-        modal = FiadosDashboardModal(parent=self.root)
-        modal.update_idletasks()
-        self.assertIsNotNone(modal)
-        self.assertGreater(len(modal.companies), 0)
-        self.assertIsNotNone(modal.selected_company)
-        modal.destroy()
+        with get_db_connection() as conn:
+            comp = CustomerModel.create(
+                conn,
+                first_name="Empresa Test XL",
+                last_name="NIT 901000111",
+                document_id="901000111-2",
+                phone="3101112233",
+                customer_type="EMPRESA",
+                discount_percent=10.0
+            )
+        try:
+            modal = FiadosDashboardModal(parent=self.root)
+            modal.update_idletasks()
+            self.assertIsNotNone(modal)
+            self.assertGreater(len(modal.companies), 0)
+            self.assertIsNotNone(modal.selected_company)
+            modal.destroy()
+        finally:
+            with get_db_connection() as conn:
+                CustomerModel.delete(conn, comp.id)
 
 
 if __name__ == "__main__":

@@ -36,11 +36,12 @@ class TestAuditFixesAndRollback(unittest.TestCase):
     def setUpClass(cls):
         cls.temp_dir = tempfile.TemporaryDirectory()
         cls.test_db_path = os.path.join(cls.temp_dir.name, "test_audit_fixes.db")
-        os.environ["SANDIEGO_DB_PATH"] = cls.test_db_path
+        os.environ["XLBURGUER_DB_PATH"] = cls.test_db_path
         initialize_database()
 
     @classmethod
     def tearDownClass(cls):
+        os.environ.pop("XLBURGUER_DB_PATH", None)
         os.environ.pop("SANDIEGO_DB_PATH", None)
         try:
             cls.temp_dir.cleanup()
@@ -366,8 +367,8 @@ class TestAuditFixesAndRollback(unittest.TestCase):
         with get_db_connection() as conn:
             inv1 = SaleModel.generate_next_invoice_number(conn)
             inv2 = SaleModel.generate_next_invoice_number(conn)
-            num1 = int(inv1.replace("SD-", ""))
-            num2 = int(inv2.replace("SD-", ""))
+            num1 = int(inv1.replace("SD-", "").replace("XL-", ""))
+            num2 = int(inv2.replace("SD-", "").replace("XL-", ""))
             self.assertEqual(num2, num1 + 1, "Invoice numbers must increment monotonically")
 
             item = CartItem(

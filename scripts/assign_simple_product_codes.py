@@ -1,5 +1,5 @@
 """Assign sequential, clean, simple product codes (1, 2, 3... N) to products.
-Carnicería San Diego POS.
+XL Burguer POS.
 """
 
 import os
@@ -8,13 +8,13 @@ import sqlite3
 _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 CAT_ORDER = {
-    'Cortes de Res': 1,
-    'Cortes de Cerdo': 2,
-    'Pollo y Aves': 3,
-    'Cortes Madurados & Parrilla': 4,
-    'Vísceras y Menudencias': 5,
-    'Quesos Artesanales': 6,
-    'Vinos de Villa de Leyva': 7
+    'Hamburguesas': 1,
+    'Perros Calientes': 2,
+    'Combos': 3,
+    'Salchipapas': 4,
+    'Acompañamientos': 5,
+    'Bebidas': 6,
+    'Adicionales': 7
 }
 
 def update_db(db_path: str):
@@ -56,8 +56,8 @@ def update_db(db_path: str):
     print(f"Successfully updated {len(assigned)} products in {db_path}!")
 
 def main():
-    root_db = os.path.join(_PROJECT_ROOT, "sandiego.db")
-    dist_db = os.path.join(_PROJECT_ROOT, "dist", "CarniceriaSanDiego", "sandiego.db")
+    root_db = os.path.join(_PROJECT_ROOT, "xlburguer.db")
+    dist_db = os.path.join(_PROJECT_ROOT, "dist", "XLBurguer", "xlburguer.db")
     update_db(root_db)
     if os.path.exists(dist_db):
         update_db(dist_db)

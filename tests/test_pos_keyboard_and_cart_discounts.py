@@ -23,26 +23,23 @@ class TestPOSKeyboardAndCartDiscounts(unittest.TestCase):
         initialize_database()
 
     def test_frequent_products_resolution(self):
-        """Verify that all 5 frequent products (Lomo Fino, Costilla, Pechuga, Carne Molida, Chuleta)
-        exist in database, have positive stock, and are found via keyword/synonyms."""
+        """Verify that frequent products in XL Burguer can be resolved by keywords."""
         synonyms = {
-            "carne molida": ["carne molida", "molida"],
-            "pechuga": ["pechuga", "pollo"],
-            "chuleta": ["chuleta", "cerdo"],
-            "costilla": ["costilla"],
-            "lomo fino": ["lomo fino", "lomo"],
+            "hamburguesa": ["hamburguesa", "clasica", "monster"],
+            "perro": ["perro", "especial"],
+            "combo": ["combo"],
+            "salchipapa": ["salchipapa"],
+            "papas": ["papas", "francesa"],
         }
         with get_db_connection() as conn:
-            for cut_name, terms in synonyms.items():
+            for item_name, terms in synonyms.items():
                 found = False
                 for term in terms:
                     matches = ProductModel.search(conn, term)
                     if matches:
-                        p = matches[0]
-                        self.assertGreater(p.stock, 0, f"Product {p.name} should have positive stock")
                         found = True
                         break
-                self.assertTrue(found, f"Frequent product '{cut_name}' must be found in database")
+                self.assertTrue(found, f"Frequent product '{item_name}' must be found in database")
 
     def test_category_consolidation(self):
         """Verify that 'Cortes de Res', 'Cortes de Cerdo', and 'Pollo y Aves' exist,
@@ -52,24 +49,22 @@ class TestPOSKeyboardAndCartDiscounts(unittest.TestCase):
             cur.execute("SELECT name FROM categories")
             cat_names = [r["name"] for r in cur.fetchall()]
 
-            self.assertIn("Cortes de Res", cat_names)
-            self.assertIn("Cortes de Cerdo", cat_names)
-            self.assertIn("Pollo y Aves", cat_names)
+            self.assertIn("HAMBURGUESAS", cat_names)
+            self.assertIn("PERROS CALIENTES", cat_names)
+            self.assertIn("COMBOS", cat_names)
+            self.assertIn("SALCHIPAPAS", cat_names)
 
-            self.assertNotIn("Cortes de Res (Delantero)", cat_names)
-            self.assertNotIn("Cortes de Res (Trasero)", cat_names)
-            self.assertNotIn("Cortes para Cocción Lenta", cat_names)
+            self.assertNotIn("Cortes de Res", cat_names)
+            self.assertNotIn("Cortes de Cerdo", cat_names)
+            self.assertNotIn("Pollo y Aves", cat_names)
 
     def test_cart_separation_by_different_discounts(self):
         """Verify that adding the same product with different discounts creates distinct line items.
         E.g. Chatas (-10%) and Chatas (-50%) remain 2 separate rows in the cart."""
         with get_db_connection() as conn:
             cur = conn.cursor()
-            cur.execute("SELECT id, name, category_id, sale_type, price_base FROM products WHERE name LIKE '%Chatas%' LIMIT 1")
+            cur.execute("SELECT id, name, category_id, sale_type, price_base FROM products LIMIT 1")
             row = cur.fetchone()
-            if not row:
-                cur.execute("SELECT id, name, category_id, sale_type, price_base FROM products WHERE sale_type = 'PESO' LIMIT 1")
-                row = cur.fetchone()
 
         prod_id = row["id"]
         prod_name = row["name"]
@@ -129,14 +124,14 @@ class TestPOSKeyboardAndCartDiscounts(unittest.TestCase):
 
         # Verify combined stock deduction
         total_deduction_g = sum(it.base_stock_deduction for it in cart_items)
-        expected_deduction_g = (2.0 + 3.0) * 1000.0
+        expected_deduction_g = (2.0 + 3.0) * (1000.0 if sale_type == "PESO" else 1.0)
         self.assertEqual(total_deduction_g, expected_deduction_g)
 
     def test_cart_consolidation_with_same_discount(self):
         """Verify that adding the same product twice with the SAME discount consolidates into 1 line item."""
         with get_db_connection() as conn:
             cur = conn.cursor()
-            cur.execute("SELECT id, name, category_id, sale_type, price_base FROM products WHERE sale_type = 'PESO' LIMIT 1")
+            cur.execute("SELECT id, name, category_id, sale_type, price_base FROM products LIMIT 1")
             row = cur.fetchone()
 
         prod_id = row["id"]

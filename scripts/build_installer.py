@@ -1,4 +1,4 @@
-"""Automated Build & Packaging Pipeline for Carnicería San Diego.
+"""Automated Build & Packaging Pipeline for XL Burguer.
 Compiles the application with PyInstaller and builds the professional
 Inno Setup Windows Installer executable.
 """
@@ -35,27 +35,27 @@ def find_iscc() -> str:
     path_iscc = shutil.which("ISCC.exe")
     if path_iscc:
         return path_iscc
-    raise FileNotFoundError("No se encontro el compilador de Inno Setup (ISCC.exe). Instálelo con winget install JRSoftware.InnoSetup")
+    raise FileNotFoundError("No se encontró el compilador de Inno Setup (ISCC.exe). Instálelo con winget install JRSoftware.InnoSetup")
 
 
 def build_pipeline():
     print("=" * 70)
-    print("[PIPELINE DE COMPILACION E INSTALADOR: CARNICERIA SAN DIEGO]")
+    print("[PIPELINE DE COMPILACION E INSTALADOR: XL BURGUER POS]")
     print("=" * 70)
 
-    # 1. Compilar con PyInstaller (main.py -> dist/CarniceriaSanDiego)
+    # 1. Compilar con PyInstaller (main.py -> dist/XLBurguer)
     print("\n[Paso 1/3] Compilando ejecutable standalone con PyInstaller...")
     from build_exe import build
     build()
 
     # 2. Verificar artefactos de distribución
-    print("\n[Paso 2/3] Verificando integridad de la carpeta de distribucion...")
-    dist_app = os.path.join(_PROJECT_ROOT, "dist", "CarniceriaSanDiego")
-    main_exe = os.path.join(dist_app, "CarniceriaSanDiego.exe")
+    print("\n[Paso 2/3] Verificando integridad de la carpeta de distribución...")
+    dist_app = os.path.join(_PROJECT_ROOT, "dist", "XLBurguer")
+    main_exe = os.path.join(dist_app, "XLBurguer.exe")
     if not os.path.exists(main_exe):
-        raise FileNotFoundError(f"Fallo en la compilacion: no se encontro {main_exe}")
+        raise FileNotFoundError(f"Fallo en la compilación: no se encontró {main_exe}")
 
-    db_path = os.path.join(dist_app, "sandiego.db")
+    db_path = os.path.join(dist_app, "xlburguer.db")
     if os.path.exists(db_path) and "--include-db" not in sys.argv:
         try:
             os.remove(db_path)
@@ -68,9 +68,9 @@ def build_pipeline():
     iscc_path = find_iscc()
     print(f"  Usando compilador Inno Setup: {iscc_path}")
 
-    iss_file = os.path.join(_PROJECT_ROOT, "installer", "CarniceriaSanDiego.iss")
+    iss_file = os.path.join(_PROJECT_ROOT, "installer", "XLBurguer.iss")
     if not os.path.exists(iss_file):
-        raise FileNotFoundError(f"No se encontro el script de Inno Setup: {iss_file}")
+        raise FileNotFoundError(f"No se encontró el script de Inno Setup: {iss_file}")
 
     installer_output_dir = os.path.join(_PROJECT_ROOT, "dist", "installer")
     os.makedirs(installer_output_dir, exist_ok=True)
@@ -83,16 +83,20 @@ def build_pipeline():
         print(res.stderr or res.stdout)
         sys.exit(res.returncode)
 
-    installer_exe = os.path.join(installer_output_dir, "Instalador_Carniceria_SanDiego_v1.0.exe")
+    installer_exe = os.path.join(installer_output_dir, "Instalador_XLBurguer_v1.0.exe")
     if os.path.exists(installer_exe):
         size_mb = os.path.getsize(installer_exe) / (1024 * 1024)
         print("\n" + "=" * 70)
         print("[OK] INSTALADOR GENERADO EXITOSAMENTE!")
-        print(f"   Ubicacion : {installer_exe}")
-        print(f"   Tamano    : {size_mb:.2f} MB")
+        print(f"   Ubicación : {installer_exe}")
+        print(f"   Tamaño    : {size_mb:.2f} MB")
         print("=" * 70)
     else:
-        print("ADVERTENCIA: El proceso finalizo pero no se detecto el archivo de salida.")
+        print("ADVERTENCIA: El proceso finalizó pero no se detectó el archivo de salida.")
+
+
+if __name__ == "__main__":
+    build_pipeline()
 
 
 if __name__ == "__main__":

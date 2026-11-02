@@ -18,7 +18,6 @@ from typing import Any, Dict, List, Optional, Tuple
 import customtkinter as ctk
 
 from database.connection import get_db_connection
-from hardware.scale_service import SerialScaleDriver, WeightReading
 from hardware.barcode_scanner import BarcodeScannerListener
 from hardware.ticket_printer import format_ticket, print_ticket_raw
 from views.ticket_preview_modal import TicketPreviewModal
@@ -567,23 +566,23 @@ class QuantityModal(ctk.CTkToplevel):
         self,
         parent,
         product: Product,
-        scale_driver: SerialScaleDriver,
-        on_confirm_callback,
+        scale_driver=None,
+        on_confirm_callback=None,
         on_close_callback=None
     ):
         super().__init__(parent)
         self.product = product
-        self.scale_driver = scale_driver
+        self.scale_driver = None
         self.on_confirm_callback = on_confirm_callback
         self.on_close_callback = on_close_callback
 
-        self.current_unit = "kg" if product.sale_type == "PESO" else "und"
-        self.quantity_var = tk.StringVar(value="1.0" if product.sale_type == "PESO" else "1")
+        self.current_unit = "und" if product.sale_type == "UNIDAD" else "und"
+        self.quantity_var = tk.StringVar(value="1")
         self.subtotal_var = tk.StringVar(value="COP $ 0")
 
         self._build_ui()
         self._update_calculations()
-        center_modal(self, 480, 530, parent)
+        center_modal(self, 480, 510, parent)
 
         self.attributes("-topmost", True)
         self.lift()
@@ -604,8 +603,8 @@ class QuantityModal(ctk.CTkToplevel):
                 pass
 
     def _build_ui(self) -> None:
-        scale_ico = get_ctk_icon("scale_gold", size=(16, 16)) or get_ctk_icon("scale_white", size=(16, 16))
-        build_standard_modal_header(self, "Modificar Cantidad / Peso", scale_ico, on_close_cmd=self._on_close, show_close_btn=False)
+        cart_ico = get_ctk_icon("cart_plus_gold", size=(16, 16)) or get_ctk_icon("cart_plus_white", size=(16, 16))
+        build_standard_modal_header(self, "Modificar Cantidad", cart_ico, on_close_cmd=self._on_close, show_close_btn=False)
 
         content = ctk.CTkFrame(self, fg_color="#121418")
         content.pack(fill="both", expand=True, padx=16, pady=(4, 10))
@@ -699,24 +698,6 @@ class QuantityModal(ctk.CTkToplevel):
         btn_row = ctk.CTkFrame(content, fg_color="transparent")
         btn_row.pack(fill="x", pady=6)
 
-        if self.product.sale_type == "PESO":
-            self.scale_btn = ctk.CTkButton(
-                btn_row,
-                text="⚖️  LEER BÁSCULA",
-                height=42,
-                fg_color=DarkTheme.BG_ELEVATED,
-                border_color=DarkTheme.SUCCESS_BORDER,
-                border_width=1,
-                hover_color=DarkTheme.BG_CARD_HOVER,
-                text_color=DarkTheme.SUCCESS,
-                font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-                corner_radius=8,
-                command=self._on_read_scale
-            )
-            self.scale_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))
-        else:
-            self.scale_btn = None
-
         self.confirm_btn = ctk.CTkButton(
             btn_row,
             text="➕  AGREGAR (Enter)",
@@ -724,18 +705,14 @@ class QuantityModal(ctk.CTkToplevel):
             fg_color=DarkTheme.SUCCESS,
             hover_color=DarkTheme.SUCCESS_HOVER,
             text_color="#FFFFFF",
-            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
             corner_radius=8,
             command=self._on_confirm
         )
-        self.confirm_btn.pack(side="right", fill="x", expand=True, padx=(4, 0))
+        self.confirm_btn.pack(fill="x", expand=True)
 
         def _on_qty_tab(event, reverse=False):
-            tab_items = [self.qty_entry]
-            if self.scale_btn:
-                tab_items.append(self.scale_btn)
-            tab_items.append(self.confirm_btn)
-
+            tab_items = [self.qty_entry, self.confirm_btn]
             curr = event.widget
             match_idx = None
             for idx, w in enumerate(tab_items):
@@ -758,32 +735,6 @@ class QuantityModal(ctk.CTkToplevel):
     def _on_unit_change(self, val: str) -> None:
         self.current_unit = val
         self._update_calculations()
-
-    def _on_read_scale(self) -> None:
-        reading = self.scale_driver.read_weight()
-        if isinstance(reading, WeightReading):
-            if not reading.is_valid:
-                err_msg = reading.error or "Lectura de báscula inestable o en cero."
-                messagebox.showwarning("Báscula", f"No se pudo capturar el peso:\n{err_msg}", parent=self)
-                return
-            grams = reading.grams
-        else:
-            grams, err = reading
-            if err:
-                messagebox.showwarning("Báscula", f"Error de lectura: {err}", parent=self)
-                return
-
-        if grams is not None and grams > 0:
-            if self.current_unit == "kg":
-                val = grams / 1000.0
-                self.quantity_var.set(f"{val:.3f}")
-            elif self.current_unit == "lb":
-                val = grams / 500.0
-                self.quantity_var.set(f"{val:.3f}")
-            else:
-                val = grams
-                self.quantity_var.set(f"{val:.0f}")
-            self._update_calculations()
 
     def _update_calculations(self) -> None:
         try:
@@ -2374,25 +2325,24 @@ class POSFrame(ctk.CTkFrame):
         self,
         parent,
         current_user: Optional[User] = None,
-        scale_driver: Optional[SerialScaleDriver] = None
+        scale_driver: Optional[Any] = None
     ):
         super().__init__(parent, fg_color=self._BG_DARK, corner_radius=0)
         self.current_user = current_user
-        self.scale_driver = scale_driver or SerialScaleDriver()
+        self.scale_driver = None
 
         # Operational State
         self.cart_items: List[CartItem] = []
         self._catalog_map: Dict[str, Product] = {}
         self.active_product: Optional[Product] = None
         self.current_customer: Optional[Customer] = None
-        self.current_unit: str = "kg"
+        self.current_unit: str = "und"
         self._is_initial_qty: bool = True
         self.keypad_frame: Optional[ctk.CTkFrame] = None
 
         # State stringvars
         self.quantity_var = tk.StringVar(value="-")
         self.item_subtotal_var = tk.StringVar(value="COP $ --")
-        self.scale_status_var = tk.StringVar(value="")
 
         self.scanner_listener = BarcodeScannerListener(self._on_scanner_barcode_scanned)
 
@@ -2820,7 +2770,7 @@ class POSFrame(ctk.CTkFrame):
         keypad_keys = [
             ("1", 0, 0), ("2", 0, 1), ("3", 0, 2), ("⌫", 0, 3),
             ("4", 1, 0), ("5", 1, 1), ("6", 1, 2), ("C", 1, 3),
-            ("7", 2, 0), ("8", 2, 1), ("9", 2, 2), ("Báscula", 2, 3),
+            ("7", 2, 0), ("8", 2, 1), ("9", 2, 2), ("+1", 2, 3),
             ("0", 3, 0), ("00", 3, 1), (".", 3, 2), ("+ Unid", 3, 3),
         ]
 
@@ -2829,7 +2779,7 @@ class POSFrame(ctk.CTkFrame):
         for text, r, c in keypad_keys:
             is_clear = (text == "C")
             is_back = (text == "⌫")
-            is_scale = (text == "Báscula")
+            is_plus_one = (text == "+1")
             is_unit = (text == "+ Unid")
 
             if is_clear:
@@ -2872,20 +2822,17 @@ class POSFrame(ctk.CTkFrame):
                     corner_radius=8,
                     command=cmd
                 )
-            elif is_scale:
+            elif is_plus_one:
                 bg = "#071913"
                 border_col = "#059669"
                 border_w = 1.5
                 hover_bg = "#0E291F"
                 txt_col = "#34D399"
-                scale_img = get_ctk_icon("scale_green", size=(18, 18))
-                btn_font = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
-                cmd = self._read_scale_live
+                btn_font = ctk.CTkFont(family="Segoe UI", size=15, weight="bold")
+                cmd = lambda: self._on_keypad_press("+1")
                 btn = ctk.CTkButton(
                     self.keypad_frame,
-                    image=scale_img,
-                    text=" Báscula",
-                    compound="left",
+                    text="+1",
                     height=48,
                     fg_color=bg,
                     border_color=border_col,
@@ -2896,7 +2843,6 @@ class POSFrame(ctk.CTkFrame):
                     corner_radius=8,
                     command=cmd
                 )
-                self.scale_btn = btn
             elif is_unit:
                 bg = "#0B182B"
                 border_col = "#2563EB"
@@ -3892,7 +3838,7 @@ class POSFrame(ctk.CTkFrame):
 
                 if len(top_prods) < 5:
                     existing_ids = {p.id for p in top_prods}
-                    default_cut_names = ["Lomo Fino", "Costilla", "Pechuga", "Carne Molida", "Chuleta"]
+                    default_cut_names = ["Hamburguesa Clásica", "Hamburguesa Doble", "Perro Caliente", "Salchipapa", "Papas Francesas"]
                     for dname in default_cut_names:
                         if len(top_prods) >= 5:
                             break
@@ -4063,34 +4009,8 @@ class POSFrame(ctk.CTkFrame):
         self._update_item_calculations()
 
     def _read_scale_live(self) -> None:
-        """Capture weight from hardware scale and update entry in real-time."""
-        if not self.active_product or self.active_product.sale_type != "PESO":
-            return
-
-        reading = self.scale_driver.read_weight()
-        if isinstance(reading, WeightReading):
-            if not reading.is_valid:
-                err_text = reading.error or "Báscula inestable o en cero"
-                logging.warning("Lectura de báscula descartada: %s", err_text)
-                return
-            grams = reading.grams
-        else:
-            grams, err = reading
-            if err or grams is None or grams <= 0:
-                return
-
-        if grams is not None and grams > 0:
-            if self.current_unit == "kg":
-                val = grams / 1000.0
-                self.quantity_var.set(f"{val:.3f}")
-            elif self.current_unit == "lb":
-                val = grams / 500.0
-                self.quantity_var.set(f"{val:.3f}")
-            else:
-                val = grams
-                self.quantity_var.set(f"{val:.0f}")
-            self._is_initial_qty = False
-            self._update_item_calculations()
+        """Deprecated: hardware scale removed for XL Burguer."""
+        pass
 
     def _on_qty_keypress(self) -> None:
         if getattr(self, "_is_fixed_qty", False):
@@ -4117,25 +4037,20 @@ class POSFrame(ctk.CTkFrame):
             else:
                 self.quantity_var.set("0")
             self._is_initial_qty = False
-        elif "LEER BÁSCULA" in key or "⚖" in key:
-            self._read_scale_live()
-            return
+        elif key == "+1":
+            try:
+                curr_val = int(float(curr)) if curr and curr != "-" else 0
+                self.quantity_var.set(str(curr_val + 1))
+            except Exception:
+                self.quantity_var.set("1")
+            self._is_initial_qty = False
         elif "Unid" in key or key == "± Unid":
-            if self.active_product and self.active_product.sale_type == "PESO":
-                units = ["kg", "lb", "g"]
-                idx = units.index(self.current_unit) if self.current_unit in units else 0
-                next_unit = units[(idx + 1) % len(units)]
-                self.unit_toggle.set(next_unit)
-                self.current_unit = next_unit
-                self.unit_disp_lbl.configure(text=next_unit)
-                self._update_item_calculations()
-            else:
-                try:
-                    q = float(self.quantity_var.get().replace(",", ".").strip() or "0")
-                    self.quantity_var.set(str(int(q + 1)))
-                except Exception:
-                    self.quantity_var.set("1")
-                self._is_initial_qty = False
+            try:
+                q = float(self.quantity_var.get().replace(",", ".").strip() or "0")
+                self.quantity_var.set(str(int(q + 1)))
+            except Exception:
+                self.quantity_var.set("1")
+            self._is_initial_qty = False
             return
         else:
             # Number or decimal point

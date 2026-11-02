@@ -1,11 +1,11 @@
-"""Login Frame for Carnicería San Diego.
+"""Login Frame for XL Burguer.
 High-end visual GUI authentication presentation.
 Split 50/50 desktop presentation:
 - Left panel: Ultra-dark charcoal (#0D0E12) with centered balanced form (370px),
-  official high-contrast brand emblem ('logoCompleto.png' / 'isotipoBlanco.png'),
+  official high-contrast brand emblem ('XL_Burguer_completo.png'),
   dark interactive input fields with iconography, focus highlights, password visibility
   toggle, and golden-amber action button.
-- Right panel: High-definition gourmet meat cuts photography ('fondoLogin.jpg')
+- Right panel: High-definition gourmet fast-food art ('fondoLogin.jpg')
   in edge-to-edge cover mode without borders or margins.
 Responsive behavior gracefully collapses right panel on mobile/narrow viewports.
 """
@@ -55,28 +55,18 @@ class LoginFrame(ctk.CTkFrame):
         self.right_panel.place(relx=0.5, rely=0.0, relwidth=0.5, relheight=1.0)
 
         # ── 2. Pre-load Assets ────────────────────────────────────────────────
-        # Pre-load Hunzaia / Unzaga emblem for bottom-right placement
-        hunzaia_path = get_asset_path("hunzaia.png")
-        if not os.path.exists(hunzaia_path):
-            hunzaia_path = get_asset_path("unzaga.png")
-        if os.path.exists(hunzaia_path):
-            try:
-                self._hunzaia_pil = Image.open(hunzaia_path).convert("RGBA")
-            except Exception as e:
-                logging.warning("No se pudo cargar el logo de Hunzaia: %s", e)
+        # Pre-load background image for right panel
+        bg_path = get_asset_path("fondo login.png")
+        if not os.path.exists(bg_path):
+            bg_path = get_asset_path("fondo login.jpg")
+        if not os.path.exists(bg_path):
+            bg_path = get_asset_path("fondoLogin.png")
+        if not os.path.exists(bg_path):
+            bg_path = get_asset_path("fondoLogin.jpg")
 
-        # Pre-load meat photography for right panel
-        meat_path = get_asset_path("fondo login.png")
-        if not os.path.exists(meat_path):
-            meat_path = get_asset_path("fondo login.jpg")
-        if not os.path.exists(meat_path):
-            meat_path = get_asset_path("fondo login")
-        if not os.path.exists(meat_path):
-            meat_path = get_asset_path("asadorLogin.jpg")
-
-        if os.path.exists(meat_path):
+        if os.path.exists(bg_path):
             try:
-                self._meat_pil = Image.open(meat_path).convert("RGB")
+                self._meat_pil = Image.open(bg_path).convert("RGB")
                 init_w, init_h = 550, 700
                 initial_img = self._render_right_image(init_w, init_h)
                 if initial_img:
@@ -84,7 +74,7 @@ class LoginFrame(ctk.CTkFrame):
                     self._right_lbl = ctk.CTkLabel(self.right_panel, image=self._right_ctk_img, text="")
                     self._right_lbl.place(relx=0.5, rely=0.5, anchor="center")
             except Exception as e:
-                logging.warning("No se pudo cargar la imagen derecha de carnes: %s", e)
+                logging.warning("No se pudo cargar la imagen de fondo: %s", e)
 
         # Bind resize for responsive layout and image dynamic scaling
         self.bind("<Configure>", self._on_resize)
@@ -294,70 +284,42 @@ class LoginFrame(ctk.CTkFrame):
         # Focus username entry immediately so user can start typing
         self.focus_login()
 
-    # ── Meat Photography Scaling & Edge-to-Edge Composition ───────────────────
+    # ── Background Art Scaling & Composition ──────────────────────────────────
     def _render_right_image(self, w: int, h: int) -> Optional[ctk.CTkImage]:
-        """Scale and center meat photography with comfortable breathing room,
-        composite Hunzaia brand emblem in bottom-right corner, and apply a smooth
+        """Scale and center gourmet background art, applying a smooth
         gradient fade on the left seam to blend organically into DarkTheme.BG_ROOT (#0D0E12).
         """
         if self._meat_pil is None or w <= 0 or h <= 0:
             return None
 
         orig_w, orig_h = self._meat_pil.width, self._meat_pil.height
-        scale = h / orig_h
+        scale = max(w / orig_w, h / orig_h)
         scaled_w = max(10, int(orig_w * scale))
         scaled_h = max(10, int(orig_h * scale))
 
-        meat_rgba = self._meat_pil.convert("RGBA")
-        resized = meat_rgba.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
+        bg_rgba = self._meat_pil.convert("RGBA")
+        resized = bg_rgba.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
 
         # Full panel canvas matching DarkTheme.BG_ROOT (#0D0E12)
         bg = Image.new("RGBA", (w, h), (13, 14, 18, 255))
 
-        # Center fork horizontally exactly at the center of the right panel (x = 1266 in 2528px image)
-        fork_cx = int(1266 * scale)
-        paste_x = (w // 2) - fork_cx
+        # Center horizontally and vertically
+        paste_x = (w - scaled_w) // 2
         paste_y = (h - scaled_h) // 2
-
-        # Feather left edge of the photo if it starts inside the panel (e.g. ultra-wide viewports)
-        if paste_x > 0:
-            fade_h = min(40, max(10, resized.width // 12))
-            fade_mask = Image.new("L", (resized.width, resized.height), 255)
-            f_draw = ImageDraw.Draw(fade_mask)
-            for i in range(fade_h):
-                alpha_val = int(255 * (i / fade_h))
-                f_draw.line([(i, 0), (i, resized.height)], fill=alpha_val)
-            alpha_comb = ImageChops.multiply(resized.split()[3], fade_mask)
-            resized.putalpha(alpha_comb)
 
         bg.paste(resized, (paste_x, paste_y), resized)
 
         # Smooth cubic gradient fade (desvanecido) on the left seam towards DarkTheme.BG_ROOT (#0D0E12).
-        # Seamlessly melts the photography into the left login panel with zero harsh dividing line.
         fade_w = max(100, min(260, int(w * 0.28)))
         if fade_w > 0:
             left_grad = Image.new("RGBA", (fade_w, 1))
             for x in range(fade_w):
                 t = x / fade_w
-                # Smoothstep curve (3t^2 - 2t^3) for zero derivative at both endpoints
                 factor = 1.0 - (3.0 * t * t - 2.0 * t * t * t)
                 alpha = int(255 * factor)
                 left_grad.putpixel((x, 0), (13, 14, 18, alpha))
             grad_strip = left_grad.resize((fade_w, h), Image.Resampling.BILINEAR)
             bg.alpha_composite(grad_strip, (0, 0))
-
-        # Composite Hunzaia / Unzaga emblem in bottom-right corner (~11.5% of panel height)
-        if self._hunzaia_pil:
-            try:
-                hh = max(55, min(95, int(h * 0.115)))
-                hw = int(hh * (self._hunzaia_pil.width / self._hunzaia_pil.height))
-                h_small = self._hunzaia_pil.resize((hw, hh), Image.Resampling.LANCZOS)
-                hx = w - hw - 22
-                hy = h - hh - 20
-                if hx >= 0 and hy >= 0:
-                    bg.paste(h_small, (hx, hy), h_small)
-            except Exception as e:
-                logging.debug("Error componiendo logo Hunzaia: %s", e)
 
         final_rgb = bg.convert("RGB")
         return ctk.CTkImage(light_image=final_rgb, dark_image=final_rgb, size=(w, h))
@@ -523,11 +485,11 @@ class LoginView(ctk.CTk):
         if sys.platform.startswith("win"):
             import ctypes
             try:
-                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("carniceria.sandiego.pos.1.0")
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("xlburguer.pos.1.0")
             except Exception:
                 pass
 
-        self.title("Sistema POS & Gestión - Carnicería San Diego")
+        self.title("Sistema POS & Gestión - XL Burguer")
         self.configure(fg_color=DarkTheme.BG_ROOT)
         set_window_icon(self)
 

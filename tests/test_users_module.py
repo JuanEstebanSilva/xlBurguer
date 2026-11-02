@@ -247,37 +247,36 @@ class TestUsersModule(unittest.TestCase):
         from hardware.ticket_printer import format_ticket
 
         with get_db_connection() as conn:
-            # 1. Update user 1 name to Diego Amador
-            UserModel.update_user(conn, 1, "admin", "Diego Amador", "ADMIN")
-            conn.execute("UPDATE products SET stock = stock + 10000 WHERE id = 1")
+            # 1. Update user 1 name to Juan Cajero
+            UserModel.update_user(conn, 1, "admin", "Juan Cajero", "ADMIN")
             conn.commit()
 
-            # Create a simple sale
+            # Create a simple sale (2 burgers)
             cart = [
                 CartItem(
                     product_id=1,
-                    product_name="Ribeye Choice",
+                    product_name="Hamburguesa Clásica XL",
                     category_id=1,
-                    category_name="Carnes de Res",
-                    sale_type="PESO",
-                    price_base=45.0,
-                    quantity=500.0,
-                    unit_selected="g",
-                    total_price=22500.0
+                    category_name="Hamburguesas",
+                    sale_type="UNIDAD",
+                    price_base=25000.0,
+                    quantity=2.0,
+                    unit_selected="und",
+                    total_price=50000.0
                 )
             ]
             sale_detail = SaleModel.process_sale(
                 conn=conn,
                 user_id=1,
                 cart_items=cart,
-                cash_received=25000.0,
-                customer_id=1,
+                cash_received=50000.0,
+                customer_id=None,
                 payment_method="EFECTIVO"
             )
 
             # Ticket formatted directly from sale_detail
             ticket_text = format_ticket(sale_detail)
-            self.assertIn("Atendido por: Diego Amador", ticket_text)
+            self.assertIn("Atendido por: Juan Cajero", ticket_text)
 
             # 2. Update operator name to a new cashier 'Carlos Perez'
             UserModel.update_user(conn, 1, "admin", "Carlos Perez", "ADMIN")

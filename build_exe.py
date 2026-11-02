@@ -1,17 +1,8 @@
-"""Automated PyInstaller Build Script for Carnicería San Diego POS.
+"""Automated PyInstaller Build Script for XL Burguer POS.
 
 Packages the entire offline desktop application into a standalone Windows
 executable (--onedir). Includes CustomTkinter themes/assets, Pillow, openpyxl,
 pywin32 DLLs (with runtime hook) and the SQLite schema.
-
-CORRECCIÓN CRÍTICA (2026-09-14):
-  Se añade el runtime hook 'pyinstaller_hooks/rthook_pywin32.py' y los
-  hiddenimports de pywin32 para evitar el deadlock silencioso al cargar
-  win32print dentro del EXE frozen.  Ver diagnóstico en app_debug.log.
-
-MODO DE COMPILACIÓN:
-  WINDOWED_MODE = False  → consola visible (recomendado para depuración)
-  WINDOWED_MODE = True   → sin consola negra (versión final de producción)
 """
 
 import os
@@ -30,7 +21,7 @@ _SEP = ";" if sys.platform.startswith("win") else ":"
 
 def build() -> None:
     print("=================================================================")
-    print("   Compilación PyInstaller: Carnicería San Diego POS")
+    print("   Compilación PyInstaller: XL Burguer POS")
     print("=================================================================")
 
     mode_str = "WINDOWED (Sin consola)" if WINDOWED_MODE else "CONSOLE (Con consola para depuración)"
@@ -60,7 +51,7 @@ def build() -> None:
 
     args = [
         "main.py",
-        "--name=CarniceriaSanDiego",
+        "--name=XLBurguer",
         "--onedir",
         # ── Colecciones de paquetes ────────────────────────────────────────
         "--collect-all=customtkinter",
@@ -98,6 +89,11 @@ def build() -> None:
         "--hidden-import=utils.asset_manager",
         "--hidden-import=database.connection",
         "--hidden-import=models.customer",
+        "--hidden-import=models.product",
+        "--hidden-import=models.ingredient",
+        "--hidden-import=models.sale",
+        "--hidden-import=models.user",
+        "--hidden-import=models.cash_shift",
         "--hidden-import=views.about_modal",
         "--hidden-import=views.calendar_modal",
         "--hidden-import=views.users_frame",
@@ -105,6 +101,8 @@ def build() -> None:
         "--hidden-import=views.pos_frame",
         "--hidden-import=views.stats_frame",
         "--hidden-import=views.login_frame",
+        "--hidden-import=views.recipe_modal",
+        "--hidden-import=views.ingredients_modal",
         # ── Opciones de compilación ───────────────────────────────────────
         "--noconfirm",
         "--clean",
@@ -114,22 +112,22 @@ def build() -> None:
     PyInstaller.__main__.run(args)
 
     # No copiar la BD de desarrollo por defecto para evitar enviar datos locales al cliente
-    if "--include-db" in sys.argv and os.path.exists("sandiego.db"):
+    if "--include-db" in sys.argv and os.path.exists("xlburguer.db"):
         import shutil
-        target_db = os.path.join("dist", "CarniceriaSanDiego", "sandiego.db")
+        target_db = os.path.join("dist", "XLBurguer", "xlburguer.db")
         try:
-            shutil.copy2("sandiego.db", target_db)
+            shutil.copy2("xlburguer.db", target_db)
             print(f"Base de datos copiada exitosamente a: {target_db}")
         except Exception as e:
-            print(f"Advertencia al copiar sandiego.db: {e}")
+            print(f"Advertencia al copiar xlburguer.db: {e}")
     else:
         print("Base de datos local omitida del empaquetado (la aplicación inicializa una BD limpia desde schema.sql).")
 
     # Copiar icono.ico a la raíz de la distribución y carpeta imgs para accesos directos
     if os.path.exists("imgs/icono.ico"):
         import shutil
-        target_ico = os.path.join("dist", "CarniceriaSanDiego", "icono.ico")
-        target_imgs_dir = os.path.join("dist", "CarniceriaSanDiego", "imgs")
+        target_ico = os.path.join("dist", "XLBurguer", "icono.ico")
+        target_imgs_dir = os.path.join("dist", "XLBurguer", "imgs")
         os.makedirs(target_imgs_dir, exist_ok=True)
         target_imgs_ico = os.path.join(target_imgs_dir, "icono.ico")
         try:
@@ -142,7 +140,7 @@ def build() -> None:
     # Copiar printer_settings.json para asegurar impresora predeterminada
     if os.path.exists("printer_settings.json"):
         import shutil
-        target_cfg = os.path.join("dist", "CarniceriaSanDiego", "printer_settings.json")
+        target_cfg = os.path.join("dist", "XLBurguer", "printer_settings.json")
         try:
             shutil.copy2("printer_settings.json", target_cfg)
             print(f"Configuración de impresora copiada exitosamente a: {target_cfg}")
@@ -151,14 +149,18 @@ def build() -> None:
 
     print("\n=================================================================")
     print("Compilación completada.")
-    print("Directorio de salida : dist/CarniceriaSanDiego/")
-    print("Ejecutable principal : dist/CarniceriaSanDiego/CarniceriaSanDiego.exe")
+    print("Directorio de salida : dist/XLBurguer/")
+    print("Ejecutable principal : dist/XLBurguer/XLBurguer.exe")
     print("")
     print("VERIFICACIÓN RÁPIDA:")
     print("  1. Ejecute el EXE desde la consola del sistema para ver stderr")
-    print("  2. Revise dist/CarniceriaSanDiego/app_debug.log tras el login")
+    print("  2. Revise dist/XLBurguer/app_debug.log tras el login")
     print("  3. El log debe mostrar 'on_login_success' y 'Cambiando a: pos'")
     print("=================================================================")
+
+
+if __name__ == "__main__":
+    build()
 
 
 if __name__ == "__main__":

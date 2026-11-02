@@ -58,8 +58,8 @@ class TestFrequentProductsAndInitialState(unittest.TestCase):
             self.assertEqual(pos.quantity_var.get(), "-")
             self.assertEqual(pos.item_subtotal_var.get(), "COP $ --")
 
-            # Scale button must be disabled when no product is loaded
-            self.assertEqual(pos.scale_btn.cget("state"), "disabled")
+            # Scale button must be None in XL Burguer (no hardware scale)
+            self.assertIsNone(pos.scale_btn)
 
             # Frequent products must have buttons rendered
             frequent = pos._get_top_frequent_products()

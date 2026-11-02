@@ -1,4 +1,4 @@
-"""Customer Data Model and Persistence for Carnicería San Diego.
+"""Customer Data Model and Persistence for XL Burguer.
 Manages customer identification by national ID (Cédula de Ciudadanía / NIT),
 fast cashier registration, customer directory management, and purchase history.
 """

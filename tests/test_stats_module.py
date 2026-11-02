@@ -124,7 +124,7 @@ class TestStatsModule(unittest.TestCase):
         try:
             items = [
                 {
-                    "invoice_number": "SD-000001",
+                    "invoice_number": "XL-000001",
                     "timestamp": "2026-09-30 12:00:00",
                     "cashier_name": "Administrador",
                     "category_name": "Carnes de Res",
@@ -151,11 +151,11 @@ class TestStatsModule(unittest.TestCase):
             ws = wb.active
 
             # Check title banner
-            self.assertEqual(ws["A1"].value, "CARNICERÍA SAN DIEGO - VILLA DE LEYVA")
+            self.assertEqual(ws["A1"].value, "XL BURGUER - SISTEMA POS & GESTIÓN")
             # Check freeze panes
             self.assertEqual(ws.freeze_panes, "A6")
             # Check row 6 data
-            self.assertEqual(ws["A6"].value, "SD-000001")
+            self.assertEqual(ws["A6"].value, "XL-000001")
             self.assertEqual(ws["E6"].value, "Lomo Fino")
             self.assertEqual(ws["I6"].value, 90000.0)
             # Check summary row formula

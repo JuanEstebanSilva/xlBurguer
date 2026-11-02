@@ -1,4 +1,4 @@
-"""Cash Shift and Drawer Management model for Carnicería San Diego.
+"""Cash Shift and Drawer Management model for XL Burguer.
 Implements register opening, cash drawer reconciliation (arqueo),
 and closing with difference calculation and audit tracking.
 """

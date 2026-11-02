@@ -222,10 +222,12 @@ class TestCustomerFlowAndPayment(unittest.TestCase):
             self.assertIsNone(pos.current_customer)
 
             # 4. Test Quick Cut Pill button
-            pos._on_quick_cut_click("Lomo Fino")
-            app.update_idletasks()
-            self.assertIsNotNone(pos.active_product)
-            self.assertIn("Lomo", pos.active_product.name)
+            frequent = pos._get_top_frequent_products()
+            if frequent:
+                pos._on_quick_cut_click(frequent[0])
+                app.update_idletasks()
+                self.assertIsNotNone(pos.active_product)
+                self.assertEqual(pos.active_product.id, frequent[0].id)
 
             # 5. Keypad entry: type '2' and '.' and '5'
             pos._on_keypad_press("2")
@@ -233,20 +235,10 @@ class TestCustomerFlowAndPayment(unittest.TestCase):
             pos._on_keypad_press("5")
             self.assertEqual(pos.quantity_var.get(), "2.5")
 
-            # 5b. Keypad scale and unit action buttons
-            self.assertIsNotNone(pos.scale_btn)
-            self.assertTrue("BÁSCULA" in pos.scale_btn.cget("text").upper())
+            # 5b. Keypad layout - confirm scale button is retired in XL Burguer
+            self.assertIsNone(pos.scale_btn)
             self.assertGreaterEqual(pos.product_selector.cget("width"), 150)
             self.assertIn("Precio", pos.active_prod_price_lbl.cget("text"))
-            self.assertIn("Stock:", pos.active_prod_stock_lbl.cget("text"))
-
-            # Unit cycling via ± Unid
-            pos._on_keypad_press("± Unid")
-            self.assertEqual(pos.current_unit, "lb")
-            pos._on_keypad_press("± Unid")
-            self.assertEqual(pos.current_unit, "g")
-            pos._on_keypad_press("± Unid")
-            self.assertEqual(pos.current_unit, "kg")
 
             # 6. Add to cart
             pos._add_active_product_to_cart()

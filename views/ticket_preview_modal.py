@@ -1,4 +1,4 @@
-"""Ticket Preview Modal for Carnicería San Diego.
+"""Ticket Preview Modal for XL Burguer.
 Interactive CustomTkinter modal displaying thermal receipt in graphical (logos & QR)
 or monospace text mode with destination printer selection and instant printing.
 """
@@ -72,7 +72,7 @@ class TicketPreviewModal(ctk.CTkToplevel):
 
         title_lbl = ctk.CTkLabel(
             header,
-            text="🧾 Comprobante de Venta - San Diego",
+            text="🧾 Comprobante de Venta - XL Burguer",
             font=ctk.CTkFont(family="Cambria", size=14, weight="bold", slant="italic"),
             text_color="#666BC5"
         )

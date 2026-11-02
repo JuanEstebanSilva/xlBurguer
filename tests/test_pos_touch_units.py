@@ -52,7 +52,10 @@ class TestPOSTouchUnitsAndFixedPackages(unittest.TestCase):
         """Test PESO products have [kg], [lb], [g] uniform touch buttons."""
         with get_db_connection() as conn:
             prods = ProductModel.get_all(conn)
-        p_meat = next(p for p in prods if p.sale_type == "PESO")
+            p_meat = next((p for p in prods if p.sale_type == "PESO"), None)
+            if not p_meat:
+                pid = ProductModel.create(conn, barcode="TESTPESO1", name="Test Item Peso", category_id=1, sale_type="PESO", price_base=30.0, unit_measure="kg", stock=5000.0)
+                p_meat = ProductModel.get_by_id(conn, pid)
         self.pos._select_product(p_meat)
         self.app.update_idletasks()
 
@@ -134,7 +137,7 @@ class TestPOSTouchUnitsAndFixedPackages(unittest.TestCase):
         self.assertEqual(list(self.pos.unit_toggle.buttons.keys()), ["ml"])
         self.assertEqual(self.pos.unit_toggle.get(), "ml")
         self.assertEqual(self.pos.current_unit, "ml")
-        self.assertEqual(self.pos.quantity_var.get(), "750")
+        pkg_qty = str(int(p_vino.fixed_package_info[0])); self.assertEqual(self.pos.quantity_var.get(), pkg_qty)
         self.assertEqual(self.pos.unit_disp_lbl.cget("text"), "ml")
         self.assertTrue(self.pos._is_fixed_qty)
         self.assertEqual(self.pos.qty_entry.cget("state"), "readonly")
@@ -145,13 +148,13 @@ class TestPOSTouchUnitsAndFixedPackages(unittest.TestCase):
 
         # Test keypad inputs are ignored for fixed package products
         self.pos._on_keypad_press("5")
-        self.assertEqual(self.pos.quantity_var.get(), "750")
+        pkg_qty = str(int(p_vino.fixed_package_info[0])); self.assertEqual(self.pos.quantity_var.get(), pkg_qty)
         self.pos._on_keypad_press("C")
-        self.assertEqual(self.pos.quantity_var.get(), "750")
+        pkg_qty = str(int(p_vino.fixed_package_info[0])); self.assertEqual(self.pos.quantity_var.get(), pkg_qty)
         self.pos._on_keypad_press("⌫")
-        self.assertEqual(self.pos.quantity_var.get(), "750")
+        pkg_qty = str(int(p_vino.fixed_package_info[0])); self.assertEqual(self.pos.quantity_var.get(), pkg_qty)
         self.pos._on_keypad_press("± Unid")
-        self.assertEqual(self.pos.quantity_var.get(), "750")
+        pkg_qty = str(int(p_vino.fixed_package_info[0])); self.assertEqual(self.pos.quantity_var.get(), pkg_qty)
         self.assertEqual(self.pos.current_unit, "ml")
 
         # Check price is formatted correctly in subtotal
@@ -165,7 +168,7 @@ class TestPOSTouchUnitsAndFixedPackages(unittest.TestCase):
 
         item = self.pos.cart_items[-1]
         self.assertEqual(item.unit_selected, "ml")
-        self.assertEqual(item.quantity, 750.0)
+        self.assertEqual(item.quantity, p_vino.fixed_package_info[0])
         self.assertEqual(item.total_price, p_vino.price_base)
         self.assertEqual(item.base_stock_deduction, 1.0)  # Exactly 1 bottle deducted from inventory!
 
@@ -175,6 +178,10 @@ class TestPOSTouchUnitsAndFixedPackages(unittest.TestCase):
             prods = ProductModel.get_all(conn)
         p_vino = next((p for p in prods if p.fixed_package_info), None)
         p_meat = next((p for p in prods if p.sale_type == "PESO"), None)
+        if not p_meat:
+            with get_db_connection() as conn:
+                pid = ProductModel.create(conn, barcode="TESTPESO2", name="Test Item Peso", category_id=1, sale_type="PESO", price_base=30.0, unit_measure="kg", stock=50000.0)
+                p_meat = ProductModel.get_by_id(conn, pid)
         self.assertIsNotNone(p_vino)
         self.assertIsNotNone(p_meat)
 
@@ -192,7 +199,7 @@ class TestPOSTouchUnitsAndFixedPackages(unittest.TestCase):
         self.pos._add_active_product_to_cart()
         self.assertEqual(len(self.pos.cart_items), 1)
         self.assertEqual(self.pos.cart_items[0].product_id, p_vino.id)
-        self.assertEqual(self.pos.cart_items[0].quantity, 750.0)
+        self.assertEqual(self.pos.cart_items[0].quantity, p_vino.fixed_package_info[0])
         self.assertEqual(self.pos.cart_items[0].total_price, p_vino.price_base)
         self.assertEqual(self.pos.cart_items[0].base_stock_deduction, 1.0)
 
@@ -211,7 +218,7 @@ class TestPOSTouchUnitsAndFixedPackages(unittest.TestCase):
         # Should consolidate into 2 rows, not 3 rows!
         self.assertEqual(len(self.pos.cart_items), 2, "Cart must have exactly 2 consolidated rows, not 3 duplicate rows")
         wine_item = next(it for it in self.pos.cart_items if it.product_id == p_vino.id)
-        self.assertEqual(wine_item.quantity, 1500.0)
+        self.assertEqual(wine_item.quantity, p_vino.fixed_package_info[0] * 2.0)
         self.assertEqual(wine_item.total_price, p_vino.price_base * 2.0)
         self.assertEqual(wine_item.base_stock_deduction, 2.0, "2 bottles of wine must deduct 2.0 units from inventory")
 
@@ -256,7 +263,7 @@ class TestPOSTouchUnitsAndFixedPackages(unittest.TestCase):
             item_row = cur.fetchone()
             self.assertIsNotNone(item_row)
             self.assertEqual(item_row["unit_selected"], "ml")
-            self.assertEqual(item_row["quantity"], 750.0)
+            self.assertEqual(item_row["quantity"], p_vino.fixed_package_info[0])
             self.assertEqual(item_row["total_price"], p_vino.price_base)
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Script de sincronización Git para Carnicería San Diego (Bash)
+# Script de sincronización Git para XL Burguer (Bash)
 
 set -e
 
@@ -15,19 +15,19 @@ fi
 git branch -M main
 
 if git remote | grep -q "origin"; then
-    git remote set-url origin https://github.com/juanSilvaE/sanDiego.git
+    git remote set-url origin https://github.com/JuanEstebanSilva/xlBurguer.git
 else
-    git remote add origin https://github.com/juanSilvaE/sanDiego.git
+    git remote add origin https://github.com/JuanEstebanSilva/xlBurguer.git
 fi
 
 git add .
 if ! git diff-index --quiet HEAD --; then
-    git commit -m "feat: core pos, inventory, hardware layer and excel reporting for Carnicería San Diego"
+    git commit -m "feat: transformacion integral a XL Burguer POS"
 else
     echo "No hay cambios pendientes para commit."
 fi
 
-echo "Sincronizando con repositorio remoto https://github.com/juanSilvaE/sanDiego.git..."
+echo "Sincronizando con repositorio remoto https://github.com/JuanEstebanSilva/xlBurguer.git..."
 git push -u origin main
 
 echo "Repositorio sincronizado exitosamente con GitHub."

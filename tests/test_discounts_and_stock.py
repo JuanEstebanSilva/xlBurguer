@@ -30,11 +30,12 @@ class TestDiscountsAndStockDeduction(unittest.TestCase):
         import tempfile
         cls.temp_dir = tempfile.TemporaryDirectory()
         cls.test_db_path = os.path.join(cls.temp_dir.name, "test_discounts_isolated.db")
-        os.environ["SANDIEGO_DB_PATH"] = cls.test_db_path
+        os.environ["XLBURGUER_DB_PATH"] = cls.test_db_path
         initialize_database()
 
     @classmethod
     def tearDownClass(cls):
+        os.environ.pop("XLBURGUER_DB_PATH", None)
         os.environ.pop("SANDIEGO_DB_PATH", None)
         try:
             cls.temp_dir.cleanup()

@@ -1,4 +1,4 @@
-"""Thermal Ticket Printer and ASCII Receipt Generator for Carnicería San Diego.
+"""Thermal Ticket Printer and ASCII Receipt Generator for XL Burguer.
 Formats 40-column monospace receipts adhering strictly to Colombian fiscal/commercial layout.
 Includes stdout logging, optional win32print thermal output, and an interactive CustomTkinter preview modal.
 """
@@ -170,25 +170,22 @@ def format_ticket(
         method_header = norm_method
         method_summary = f"PAGO {norm_method}:"
 
-    # Clean operator/cashier name for receipt (e.g. 'Diego Amador', 'Carlos Perez', etc.)
-    op_name = cashier_name or "Diego Amador"
+    # Clean operator/cashier name for receipt
+    op_name = cashier_name or "Cajero XL Burguer"
     if isinstance(op_name, str):
         cleaned_op = strip_accents(op_name.strip())
-        if cleaned_op.lower().endswith(" carniceria"):
-            cleaned_op = cleaned_op[:-11].strip()
-        cashier_clean = cleaned_op if cleaned_op else "Diego Amador"
+        cashier_clean = cleaned_op if cleaned_op else "Cajero XL Burguer"
     else:
-        cashier_clean = "Diego Amador"
+        cashier_clean = "Cajero XL Burguer"
 
     if len(cashier_clean) > 22:
         cashier_clean = cashier_clean[:22]
 
     lines = [
         border,
-        box_line(center_line("CARNICERIA SAN DIEGO", 38)),
-        box_line(center_line("NIT: 222222222222", 38)),
-        box_line(center_line("Cra 10 No. 7-46, Villa de Leyva", 38)),
-        box_line(center_line("Tel: 3136098114", 38)),
+        box_line(center_line("XL BURGUER", 38)),
+        box_line(center_line("Comidas Rapidas & Hamburguesas", 38)),
+        box_line(center_line("Sistema POS & Facturacion", 38)),
         border,
         box_line(f" Comprobante No: {invoice_number}", 38),
         box_line(f" Fecha: {date_str}", 38),
@@ -283,14 +280,8 @@ def format_ticket(
 
     lines.extend([
         border,
-        box_line(center_line('"No solo vendemos carne. Vendemos una', 38)),
-        box_line(center_line('experiencia" Diego Amador', 38)),
-        border,
-        box_line(center_line("Visitanos", 38)),
-        box_line(center_line("[QR]        SAN DIEGO         ", 38)),
-        box_line(center_line("        CORTES MADURADOS      ", 38)),
-        box_line(center_line("https://v3-sandiego-preview.", 38)),
-        box_line(center_line("hunzaiaco.workers.dev/?movimiento", 38)),
+        box_line(center_line("GRACIAS POR SU COMPRA!", 38)),
+        box_line(center_line("XL BURGUER - Calidad & Sabor", 38)),
         border,
     ])
 
@@ -316,9 +307,9 @@ def render_ticket_image(
             pass
         return None
 
-    iso_img = _load_asset("isotipo negro.png") or _load_asset("isotipoNegro.png")
-    qr_img = _load_asset("qr.png")
-    logo_img = _load_asset("logotipo-negro-2000.png")
+    iso_img = _load_asset("XL_Burguer_logo.png") or _load_asset("logoHorizontal.png")
+    qr_img = None
+    logo_img = None
 
     S = 2  # 2x Retina scale for crispness
     bg_color = (255, 255, 255, 255)

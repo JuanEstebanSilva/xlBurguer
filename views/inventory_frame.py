@@ -1,11 +1,12 @@
-"""Catalog and Inventory Management Frame for Carnicería San Diego.
-Provides complete management of butcher cuts and store items:
+"""Catalog and Inventory Management Frame for XL Burguer.
+Provides complete management of fast-food products, ingredients and recipes:
 - Interactive columns with ascending/descending sorting and visual arrows.
 - Omni-search by name, barcode, ID, or category.
 - Multi-filtering by Category, Inventory Status (Normal, Bajo, Agotado), and Commercialization Type (Peso, Unidad).
 - Automated inventory status calculation and colored badges.
-- Rich ProductDetailModal ("Ver producto") with pricing, margins, valuation, and stock health.
-- Professional ProductFormModal ("Crear / Editar producto") with strict validations.
+- Rich ProductDetailModal ("Ver producto") with pricing, margins, valuation, and recipe ingredients in grams.
+- Professional ProductFormModal ("Crear / Editar producto") with strict validations and NO product photographs.
+- Quick access to Ingredients Management (in grams) and Recipe / Portions Manager.
 - Compact, ultra-snug vertical layout eliminating dead space below the topbar.
 """
 
@@ -14,6 +15,7 @@ import math
 import os
 import sqlite3
 import tkinter as tk
+from datetime import datetime
 from tkinter import filedialog, messagebox
 from typing import Callable, Dict, List, Optional, Tuple
 import customtkinter as ctk
@@ -22,6 +24,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 from database.connection import get_db_connection, normalize_text
+from models.ingredient import IngredientModel
 from models.product import (
     Product,
     ProductModel,
@@ -34,7 +37,9 @@ from models.user import User
 from utils.asset_manager import center_modal, get_ctk_icon, get_tinted_ctk_icon, build_standard_modal_header
 from utils.sound_manager import sound_manager
 from utils.theme import DarkTheme, safe_reset_entry, apply_palette_button, PaletteButton, bind_tab_navigation
+from views.ingredients_modal import IngredientsManagerModal
 from views.pos_frame import TouchKeypadModal
+from views.recipe_modal import RecipeManagerModal
 
 
 def _set_dialog_icon_and_center(dialog: ctk.CTkToplevel, parent, w: int, h: int) -> None:
@@ -47,7 +52,7 @@ def _set_dialog_icon_and_center(dialog: ctk.CTkToplevel, parent, w: int, h: int)
 # ─────────────────────────────────────────────────────────────────────────────
 class ProductDetailModal(ctk.CTkToplevel):
     """Modern modal dialog displaying a complete technical & financial sheet of a product.
-    Matches the official San Diego charcoal dark theme with topbar, white section headers,
+    Matches the official XL Burguer dark theme with topbar, white section headers,
     and streamlined financial & stock metrics.
     """
 
@@ -75,7 +80,7 @@ class ProductDetailModal(ctk.CTkToplevel):
     def _build_ui(self) -> None:
         p = self.product
 
-        # ── Standard Executive Topbar with San Diego & HunzaIA Logos (No [X] button, White Title & Icon) ──
+        # ── Standard Executive Topbar with XL Burguer Logos (No [X] button, White Title & Icon) ──
         detail_icon = get_ctk_icon("eye_white", size=(16, 16))
         build_standard_modal_header(
             self,
@@ -443,6 +448,106 @@ class ProductDetailModal(ctk.CTkToplevel):
         ctk.CTkLabel(v2, text="Valoración a Precio Venta:", font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#94A3B8").pack(anchor="e")
         ctk.CTkLabel(v2, text=format_currency(p.total_inventory_valuation_sale), font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"), text_color="#34D399").pack(anchor="e")
 
+        # ── Section 3: Recipe & Grams Composition (XL Burguer) ───────────────
+        with get_db_connection() as conn:
+            recipe = IngredientModel.get_recipe_for_product(conn, p.id)
+            limiting_info = IngredientModel.get_limiting_ingredient_details(conn, p.id)
+
+        sec3_header = ctk.CTkFrame(body, fg_color="transparent")
+        sec3_header.pack(fill="x", pady=(10, 6))
+
+        recipe_icon = get_ctk_icon("chart_column_white", size=(16, 16))
+        ctk.CTkLabel(
+            sec3_header,
+            image=recipe_icon,
+            compound="left",
+            text="  COMPOSICIÓN DE RECETA EN GRAMOS (XL BURGUER)",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            text_color="#FFFFFF"
+        ).pack(side="left")
+
+        rec_btn = ctk.CTkButton(
+            sec3_header,
+            text=" Gestionar Receta",
+            image=get_ctk_icon("pen_gold", size=(13, 13)),
+            compound="left",
+            height=28,
+            fg_color="#1E293B",
+            hover_color="#334155",
+            border_color="#6366F1",
+            border_width=1,
+            text_color="#A5B4FC",
+            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+            corner_radius=6,
+            cursor="hand2",
+            command=self._on_manage_recipe
+        )
+        rec_btn.pack(side="right")
+
+        rec_card = ctk.CTkFrame(
+            body,
+            fg_color="#161A24",
+            border_color="#2A3245",
+            border_width=1.5,
+            corner_radius=10
+        )
+        rec_card.pack(fill="x", pady=(0, 12))
+
+        if recipe:
+            # Header info: theoretical portions and limiting ingredient
+            if limiting_info:
+                lim_name, lim_stk, lim_req, lim_portions = limiting_info
+                lim_bg = "#06281E" if lim_portions >= 10 else ("#2E1C0C" if lim_portions > 0 else "#2D1115")
+                lim_border = "#059669" if lim_portions >= 10 else ("#D97706" if lim_portions > 0 else "#DC2626")
+                lim_fg = "#34D399" if lim_portions >= 10 else ("#FBBF24" if lim_portions > 0 else "#F87171")
+                lim_status_text = f"  Porciones disponibles con inventario actual: {lim_portions} und. (Limitado por: {lim_name} - {lim_stk:,.0f}g disp.)"
+            else:
+                lim_bg, lim_border, lim_fg = "#06281E", "#059669", "#34D399"
+                lim_status_text = "  Receta activa sin ingredientes limitantes."
+
+            port_chip = ctk.CTkFrame(rec_card, fg_color=lim_bg, border_color=lim_border, border_width=1.2, corner_radius=6)
+            port_chip.pack(fill="x", padx=12, pady=(10, 6))
+            ctk.CTkLabel(
+                port_chip,
+                text=lim_status_text,
+                font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+                text_color=lim_fg
+            ).pack(anchor="w", padx=10, pady=4)
+
+            # Table header
+            t_hdr = ctk.CTkFrame(rec_card, fg_color="#1E2332", height=26, corner_radius=4)
+            t_hdr.pack(fill="x", padx=12, pady=(4, 2))
+            t_hdr.pack_propagate(False)
+
+            ctk.CTkLabel(t_hdr, text="Ingrediente", width=180, anchor="w", font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#94A3B8").pack(side="left", padx=4)
+            ctk.CTkLabel(t_hdr, text="Porción (g)", width=80, anchor="center", font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#94A3B8").pack(side="left", padx=4)
+            ctk.CTkLabel(t_hdr, text="Costo / Porción", width=100, anchor="center", font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#94A3B8").pack(side="left", padx=4)
+            ctk.CTkLabel(t_hdr, text="Rendimiento", width=90, anchor="center", font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#94A3B8").pack(side="left", padx=4)
+
+            for idx, item in enumerate(recipe):
+                rf = ctk.CTkFrame(rec_card, fg_color="#0F131D" if idx % 2 == 0 else "#141A27", height=28, corner_radius=4)
+                rf.pack(fill="x", padx=12, pady=1)
+                rf.pack_propagate(False)
+
+                ctk.CTkLabel(rf, text=item.ingredient_name, width=180, anchor="w", font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#FFFFFF").pack(side="left", padx=4)
+                ctk.CTkLabel(rf, text=f"{item.quantity_g:,.0f} g", width=80, anchor="center", font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#38BDF8").pack(side="left", padx=4)
+                ctk.CTkLabel(rf, text=format_currency(item.cost_contribution), width=100, anchor="center", font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#34D399").pack(side="left", padx=4)
+                ctk.CTkLabel(rf, text=f"{item.possible_portions} und", width=90, anchor="center", font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#CBD5E1").pack(side="left", padx=4)
+
+            ctk.CTkFrame(rec_card, fg_color="transparent", height=6).pack()
+        else:
+            ctk.CTkLabel(
+                rec_card,
+                text="Este producto no tiene receta de ingredientes registrada.\nSe comercializa como unidad directa o bebida de inventario simple.",
+                font=ctk.CTkFont(family="Segoe UI", size=11),
+                text_color="#94A3B8"
+            ).pack(padx=16, pady=16)
+
+    def _on_manage_recipe(self) -> None:
+        p = self.product
+        self.destroy()
+        RecipeManagerModal(self.master, selected_product_id=p.id)
+
     def _on_edit_click(self) -> None:
         p = self.product
         callback = self.on_edit_request
@@ -520,7 +625,7 @@ class ProductFormModal(ctk.CTkToplevel):
     def _build_ui(self, title: str, is_edit: bool) -> None:
         p = self.product
 
-        # ── Executive Topbar with San Diego & HunzaIA Logos, White Title & Icon, No [X] Button ──
+        # ── Executive Topbar with XL Burguer Logos, White Title & Icon, No [X] Button ──
         title_icon = get_ctk_icon("pen_white", size=(16, 16)) if is_edit else get_ctk_icon("file_circle_plus_white", size=(16, 16))
         title_text = "Editar Producto" if is_edit else "Creación de Nuevo Producto"
         build_standard_modal_header(
@@ -1709,7 +1814,7 @@ class AddStockModal(ctk.CTkToplevel):
         self.after(50, lambda: (self.search_entry.focus_set(), self.search_entry.select_range(0, "end")))
 
     def _build_ui(self) -> None:
-        # ── Standard Executive Topbar with San Diego & HunzaIA Logos ───────────
+        # ── Standard Executive Topbar with XL Burguer Logos ───────────
         title_icon = get_ctk_icon("cube_white", size=(16, 16)) or get_ctk_icon("file_circle_plus_white", size=(16, 16))
         build_standard_modal_header(
             self,
@@ -2690,13 +2795,14 @@ BatchStockEntryModal = AddStockModal
 # 4. MAIN INVENTORY FRAME (CATÁLOGO Y GESTIÓN DE PRODUCTOS)
 # ─────────────────────────────────────────────────────────────────────────────
 class InventoryFrame(ctk.CTkFrame):
-    """Catalog and Inventory Management Presentation Frame for Carnicería San Diego.
+    """Catalog and Inventory Management Presentation Frame for XL Burguer.
     Features:
     - Snug vertical layout fitting immediately under the topbar with minimal margin.
     - Full search across ID, barcode, name, and category.
     - Filters by Category, Inventory Status (Normal, Bajo, Agotado), and Commercialization Type (Peso, Unidad).
     - Sortable table headers with visual arrow indicators (▲ / ▼).
     - Auto-computed status pills, clear action buttons (Ver, Editar, Eliminar).
+    - Direct access to Gram-Based Ingredients Management and Fast-Food Recipe Tuning.
     - Live KPI counter chips.
     """
 
@@ -2743,10 +2849,18 @@ class InventoryFrame(ctk.CTkFrame):
         if hasattr(self, "add_prod_btn") and hasattr(self, "export_excel_btn") and hasattr(self, "add_stock_btn"):
             if self.is_admin:
                 self.add_prod_btn.pack(side="right")
-                self.add_stock_btn.pack(side="right", padx=(0, 10))
-                self.export_excel_btn.pack(side="right", padx=(0, 10))
+                if hasattr(self, "manage_recipes_btn"):
+                    self.manage_recipes_btn.pack(side="right", padx=(0, 8))
+                if hasattr(self, "manage_ingredients_btn"):
+                    self.manage_ingredients_btn.pack(side="right", padx=(0, 8))
+                self.add_stock_btn.pack(side="right", padx=(0, 8))
+                self.export_excel_btn.pack(side="right", padx=(0, 8))
             else:
                 self.add_prod_btn.pack_forget()
+                if hasattr(self, "manage_recipes_btn"):
+                    self.manage_recipes_btn.pack_forget()
+                if hasattr(self, "manage_ingredients_btn"):
+                    self.manage_ingredients_btn.pack_forget()
                 self.add_stock_btn.pack_forget()
                 self.export_excel_btn.pack_forget()
 
@@ -3053,7 +3167,7 @@ class InventoryFrame(ctk.CTkFrame):
         self.kpi_valuation_lbl.pack(padx=16, pady=3)
         self.kpi_valuation_btn = self.kpi_valuation_lbl
 
-        # Right buttons: "+ Agregar producto" and "Exportar Excel"
+        # Right buttons: "+ Agregar producto", "Recetas", "Ingredientes (g)", "Agregar stock" and "Exportar Excel"
         add_icon = get_ctk_icon("file_circle_plus_white", size=(16, 16))
         self.add_prod_btn = ctk.CTkButton(
             row_kpis,
@@ -3074,25 +3188,65 @@ class InventoryFrame(ctk.CTkFrame):
         if self.is_admin:
             self.add_prod_btn.pack(side="right")
 
+        recipes_icon = get_ctk_icon("chart_column_white", size=(15, 15))
+        self.manage_recipes_btn = ctk.CTkButton(
+            row_kpis,
+            image=recipes_icon,
+            compound="left",
+            text=" Recetas",
+            height=34,
+            fg_color="#312E81",
+            hover_color="#3730A3",
+            border_color="#6366F1",
+            border_width=1.5,
+            text_color="#FFFFFF",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            corner_radius=16,
+            cursor="hand2",
+            command=self._open_recipes_modal
+        )
+        if self.is_admin:
+            self.manage_recipes_btn.pack(side="right", padx=(0, 8))
+
+        ing_icon = get_ctk_icon("cube_white", size=(15, 15))
+        self.manage_ingredients_btn = ctk.CTkButton(
+            row_kpis,
+            image=ing_icon,
+            compound="left",
+            text=" Ingredientes (g)",
+            height=34,
+            fg_color="#064E3B",
+            hover_color="#065F46",
+            border_color="#10B981",
+            border_width=1.5,
+            text_color="#FFFFFF",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            corner_radius=16,
+            cursor="hand2",
+            command=self._open_ingredients_modal
+        )
+        if self.is_admin:
+            self.manage_ingredients_btn.pack(side="right", padx=(0, 8))
+
         stock_icon = get_ctk_icon("cube_white", size=(16, 16))
         self.add_stock_btn = ctk.CTkButton(
             row_kpis,
             image=stock_icon,
             compound="left",
             text=" Agregar stock",
-            height=36,
+            height=34,
             fg_color="#78350F",
             hover_color="#92400E",
             border_color="#F59E0B",
             border_width=1.5,
             text_color="#FFFFFF",
-            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            corner_radius=18,
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            corner_radius=16,
             cursor="hand2",
             command=self._open_add_stock_modal
         )
         if self.is_admin:
-            self.add_stock_btn.pack(side="right", padx=(0, 10))
+            self.add_stock_btn.pack(side="right", padx=(0, 8))
 
         excel_img = get_ctk_icon("excel_white", size=(15, 15))
         self.export_excel_btn = ctk.CTkButton(
@@ -3112,7 +3266,7 @@ class InventoryFrame(ctk.CTkFrame):
             command=self._export_to_excel
         )
         if self.is_admin:
-            self.export_excel_btn.pack(side="right", padx=(0, 10))
+            self.export_excel_btn.pack(side="right", padx=(0, 8))
 
         # ── 2. Main Table Container ──────────────────────────────────────────
         self.table_container = ctk.CTkFrame(
@@ -3822,6 +3976,26 @@ class InventoryFrame(ctk.CTkFrame):
             logging.exception("Error al abrir AddStockModal: %s", e)
             messagebox.showerror("Error al Abrir Entrada de Stock", f"No se pudo abrir la ventana de agregar stock:\n{e}", parent=self)
 
+    def _open_recipes_modal(self, product_id: Optional[int] = None) -> None:
+        if not self.is_admin:
+            messagebox.showwarning("Acceso Denegado", "Solo el Administrador puede gestionar recetas.", parent=self)
+            return
+        try:
+            RecipeManagerModal(parent=self, selected_product_id=product_id, on_recipe_saved_callback=self.load_data)
+        except Exception as e:
+            logging.exception("Error al abrir RecipeManagerModal: %s", e)
+            messagebox.showerror("Error", f"No se pudo abrir la gestión de recetas:\n{e}", parent=self)
+
+    def _open_ingredients_modal(self) -> None:
+        if not self.is_admin:
+            messagebox.showwarning("Acceso Denegado", "Solo el Administrador puede gestionar ingredientes.", parent=self)
+            return
+        try:
+            IngredientsManagerModal(parent=self, on_refresh_parent_callback=self.load_data)
+        except Exception as e:
+            logging.exception("Error al abrir IngredientsManagerModal: %s", e)
+            messagebox.showerror("Error", f"No se pudo abrir la gestión de ingredientes:\n{e}", parent=self)
+
     def _open_edit_product_modal(self, product: Product) -> None:
         if not self.is_admin:
             messagebox.showwarning("Acceso Denegado", "Solo el Administrador puede modificar productos.", parent=self)
@@ -3866,7 +4040,7 @@ class InventoryFrame(ctk.CTkFrame):
 
         from datetime import datetime
         now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        default_filename = f"Inventario_SanDiego_{now_str}.xlsx"
+        default_filename = f"Inventario_XLBurguer_{now_str}.xlsx"
 
         file_path = filedialog.asksaveasfilename(
             parent=self,
@@ -3904,7 +4078,7 @@ class InventoryFrame(ctk.CTkFrame):
             )
 
             # Title
-            ws["A1"] = "CARNICERÍA SAN DIEGO — REPORTE GENERAL DE INVENTARIO"
+            ws["A1"] = "XL BURGUER — REPORTE GENERAL DE INVENTARIO"
             ws["A1"].font = title_font
             ws["A2"] = f"Generado el: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}  |  Total de productos: {len(self.filtered_products)}"
             ws["A2"].font = meta_font

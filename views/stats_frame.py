@@ -1,4 +1,4 @@
-"""Statistics, Visual Charts, Sales History and Reporting Frame for Carnicería San Diego.
+"""Statistics, Visual Charts, Sales History and Reporting Frame for XL Burguer.
 Provides an executive dashboard featuring:
 - Top full-width unified controls and filter bar (100% width) matching Inventory & POS styling.
 - Quick preset buttons with dedicated calendar icons:
@@ -1429,9 +1429,8 @@ class StatsFrame(ctk.CTkFrame):
 
         lines = [
             border,
-            box_line(center_line("CARNICERIA SAN DIEGO", 38)),
-            box_line(center_line("NIT: 900.345.678-3", 38)),
-            box_line(center_line("VENTA DE CARNES Y VIVERES", 38)),
+            box_line(center_line("XL BURGUER", 38)),
+            box_line(center_line("COMIDAS RAPIDAS & HAMBURGUESAS", 38)),
             border,
             box_line(center_line(report_title, 38)),
             div,
@@ -2434,7 +2433,7 @@ class StatsFrame(ctk.CTkFrame):
             return
 
         date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        default_filename = f"Ventas_SanDiego_{date_str}.xlsx"
+        default_filename = f"Ventas_XLBurguer_{date_str}.xlsx"
 
         file_path = filedialog.asksaveasfilename(
             parent=self,

@@ -1,4 +1,4 @@
-"""Users and Customers Management Frame for Carnicería San Diego POS System (Villa de Leyva).
+"""Users and Customers Management Frame for XL Burguer POS System.
 Features:
 - Full-width unified executive controls bar matching Inventory, POS & Stats styling.
 - Clientes / Usuarios del Sistema segmented tab switch.
@@ -795,7 +795,7 @@ class UserFormModal(ctk.CTkToplevel):
             self.email_entry = ctk.CTkEntry(
                 form_grid,
                 height=34,
-                placeholder_text="Ej: cajero@carniceriasandiego.com",
+                placeholder_text="Ej: cajero@xlburguer.com",
                 placeholder_text_color=DarkTheme.TEXT_PLACEHOLDER,
                 font=ctk.CTkFont(family="Segoe UI", size=12),
                 fg_color=DarkTheme.INPUT_BG,
@@ -1033,7 +1033,7 @@ class UserDetailModal(ctk.CTkToplevel):
     def __init__(self, parent, user: User):
         super().__init__(parent)
         self.user = user
-        self.title("Ficha de Colaborador - Carnicería San Diego")
+        self.title("Ficha de Colaborador - XL Burguer")
         self.configure(fg_color="#15171F")
         self.resizable(False, False)
 
@@ -4113,7 +4113,7 @@ class CustomTabSwitcher(ctk.CTkFrame):
 # 5. MAIN USERS AND CUSTOMERS FRAME
 # ─────────────────────────────────────────────────────────────────────────────
 class UsersFrame(ctk.CTkFrame):
-    """Executive Users and Customers Presentation Frame for Carnicería San Diego.
+    """Executive Users and Customers Presentation Frame for XL Burguer.
     Features:
     - Unified executive topbar matching Inventory, POS & Stats.
     - Clientes / Usuarios del Sistema segmented tab switch.
@@ -5326,7 +5326,7 @@ class UsersFrame(ctk.CTkFrame):
 
             lbl_pct = ctk.CTkLabel(
                 p_row,
-                text=f"{pct:.1f}% de la facturación global de la carnicería",
+                text=f"{pct:.1f}% de la facturación global del negocio",
                 font=ctk.CTkFont(family="Segoe UI", size=9),
                 text_color=DarkTheme.TEXT_MUTED
             )

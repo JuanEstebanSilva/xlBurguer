@@ -1,5 +1,5 @@
--- Schema DDL para Carnicería San Diego (Villa de Leyva)
--- Versión del esquema: 3 (Transaccional, Multi-Turno, IVA, Consecutivos Inalterables y Auditoría)
+-- Schema DDL para XL Burguer
+-- Versión del esquema: 4 (Transaccional, Multi-Turno, IVA, Consecutivos Fiscales, Ingredientes en Gramos y Recetas)
 PRAGMA foreign_keys = ON;
 
 -- Tabla de Usuarios y Autenticación
@@ -17,10 +17,22 @@ CREATE TABLE IF NOT EXISTS users (
     locked_until DATETIME DEFAULT NULL
 );
 
--- Tabla de Categorías de Productos
+-- Tabla de Categorías de Comidas Rápidas
 CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL
+);
+
+-- Tabla de Ingredientes y Subproductos (Inventario en Gramos)
+CREATE TABLE IF NOT EXISTS ingredients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT,
+    stock_g REAL NOT NULL DEFAULT 0,
+    min_stock_g REAL NOT NULL DEFAULT 0,
+    cost_per_g REAL NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tabla de Clientes y Empresas (Identificación, Registro en Caja y Cartera)
@@ -36,13 +48,13 @@ CREATE TABLE IF NOT EXISTS customers (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de Convenios y Cupos de Fiados por Producto para Empresas
+-- Tabla de Convenios y Cupos de Fiados
 CREATE TABLE IF NOT EXISTS company_product_quotas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_id INTEGER NOT NULL,
     product_id INTEGER NOT NULL,
     quota_quantity REAL NOT NULL DEFAULT 0,
-    unit TEXT NOT NULL DEFAULT 'kg',
+    unit TEXT NOT NULL DEFAULT 'und',
     consumed_quantity REAL NOT NULL DEFAULT 0,
     remaining_quantity REAL NOT NULL DEFAULT 0,
     notes TEXT,
@@ -53,22 +65,49 @@ CREATE TABLE IF NOT EXISTS company_product_quotas (
     UNIQUE (customer_id, product_id)
 );
 
--- Tabla de Productos e Inventario
--- Si sale_type = 'PESO': price_base es precio por gramo ($/g), stock en gramos (g)
--- Si sale_type = 'UNIDAD': price_base es precio por unidad ($/und), stock en unidades
+-- Tabla de Productos Comerciales (Preparados, Combos, Bebidas, Adicionales)
+-- En XL Burguer la venta de productos es por unidades ('UNIDAD')
 CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     barcode TEXT UNIQUE,
     name TEXT NOT NULL,
     category_id INTEGER NOT NULL,
-    sale_type TEXT CHECK (sale_type IN ('PESO', 'UNIDAD')) NOT NULL,
+    sale_type TEXT CHECK (sale_type IN ('UNIDAD', 'PESO')) NOT NULL DEFAULT 'UNIDAD',
     price_base REAL NOT NULL,
     cost REAL NOT NULL DEFAULT 0,
     iva REAL NOT NULL DEFAULT 0,
-    unit_measure TEXT NOT NULL DEFAULT 'kg',
+    unit_measure TEXT NOT NULL DEFAULT 'und',
     stock REAL NOT NULL DEFAULT 0,
     min_stock REAL NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 1,
     FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE RESTRICT
+);
+
+-- Tabla de Composición de Recetas (Subproductos e Ingredientes por Producto)
+CREATE TABLE IF NOT EXISTS product_recipes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id INTEGER NOT NULL,
+    ingredient_id INTEGER NOT NULL,
+    quantity_g REAL NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients (id) ON DELETE RESTRICT,
+    UNIQUE (product_id, ingredient_id)
+);
+
+-- Tabla de Trazabilidad y Movimientos de Inventario
+CREATE TABLE IF NOT EXISTS inventory_movements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ingredient_id INTEGER,
+    product_id INTEGER,
+    movement_type TEXT NOT NULL CHECK (movement_type IN ('VENTA', 'COMPRA', 'AJUSTE', 'MERMA', 'INICIAL')),
+    quantity REAL NOT NULL,
+    previous_stock REAL NOT NULL,
+    new_stock REAL NOT NULL,
+    reference_id TEXT,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients (id) ON DELETE SET NULL,
+    FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE SET NULL
 );
 
 -- Tabla de Facturas / Ventas
@@ -99,7 +138,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
     sale_id INTEGER NOT NULL,
     product_id INTEGER NOT NULL,
     quantity REAL NOT NULL,
-    unit_selected TEXT NOT NULL CHECK (unit_selected IN ('g', 'kg', 'lb', 'und', 'ml', 'l')),
+    unit_selected TEXT NOT NULL DEFAULT 'und' CHECK (unit_selected IN ('und', 'g', 'kg', 'lb', 'ml', 'l')),
     unit_price REAL NOT NULL,
     total_price REAL NOT NULL,
     fiado_remaining REAL,
@@ -151,8 +190,11 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- Índices de Rendimiento
 CREATE INDEX IF NOT EXISTS idx_customers_document ON customers (document_id);
 CREATE INDEX IF NOT EXISTS idx_customers_type ON customers (customer_type);
-CREATE INDEX IF NOT EXISTS idx_company_quotas_customer ON company_product_quotas (customer_id);
-CREATE INDEX IF NOT EXISTS idx_company_quotas_product ON company_product_quotas (product_id);
+CREATE INDEX IF NOT EXISTS idx_ingredients_name ON ingredients (name);
+CREATE INDEX IF NOT EXISTS idx_product_recipes_prod ON product_recipes (product_id);
+CREATE INDEX IF NOT EXISTS idx_product_recipes_ing ON product_recipes (ingredient_id);
+CREATE INDEX IF NOT EXISTS idx_inv_movements_ing ON inventory_movements (ingredient_id);
+CREATE INDEX IF NOT EXISTS idx_inv_movements_prod ON inventory_movements (product_id);
 CREATE INDEX IF NOT EXISTS idx_products_barcode ON products (barcode);
 CREATE INDEX IF NOT EXISTS idx_products_name ON products (name);
 CREATE INDEX IF NOT EXISTS idx_products_category ON products (category_id);

@@ -301,7 +301,7 @@ class TestProductsModule(unittest.TestCase):
             self.assertEqual(frame.sort_direction, "asc")
 
             # Test search entry clear
-            frame.search_entry.insert(0, "Ribeye")
+            frame.search_entry.insert(0, "Hamburguesa")
             frame._on_filter_changed()
             self.assertGreaterEqual(len(frame.filtered_products), 1)
             frame._clear_search()

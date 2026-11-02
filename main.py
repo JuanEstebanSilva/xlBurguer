@@ -1,4 +1,4 @@
-"""Main Entry Point for Carnicería San Diego POS System (Villa de Leyva).
+"""Main Entry Point for XL Burguer POS System.
 Implements the Single-Window Frame Switcher architecture with CustomTkinter,
 robust file logging to app_debug.log, and global exception trapping.
 """
@@ -24,12 +24,11 @@ if _PROJECT_ROOT not in sys.path:
 if sys.platform.startswith("win"):
     import ctypes
     try:
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("carniceria.sandiego.pos.1.0")
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("xlburguer.pos.1.0")
     except Exception:
         pass
 
 from database.connection import get_resource_path, get_writable_path, initialize_database
-from hardware.scale_service import SerialScaleDriver
 from models.user import User
 from utils.asset_manager import ensure_assets, get_asset_path, get_ctk_icon, set_window_icon
 from utils.navbar_animator import NavbarAnimator
@@ -233,18 +232,18 @@ class App(ctk.CTk):
 
     def __init__(self):
         super().__init__()
-        logging.info("Inicializando aplicación Carnicería San Diego (Single-Window Frame Switcher)...")
+        logging.info("Inicializando aplicación XL Burguer (Single-Window Frame Switcher)...")
 
         # Set Windows taskbar AppUserModelID for taskbar icon grouping
         if sys.platform.startswith("win"):
             import ctypes
             try:
-                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("carniceria.sandiego.pos.1.0")
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("xlburguer.pos.1.0")
             except Exception:
                 pass
 
         # Set title and visual themes
-        self.title("Sistema POS & Gestión")
+        self.title("XL Burguer - Sistema POS & Gestión")
         self.configure(fg_color=DarkTheme.BG_ROOT)
         self.minsize(1000, 620)
 
@@ -255,9 +254,6 @@ class App(ctk.CTk):
         # only affects this CTk window (class-level patch is not reliable across
         # CTk versions and can cause recursion in some edge cases).
         self.report_callback_exception = self._on_tk_callback_exception
-
-        # Non-blocking hardware driver instance
-        self.scale_driver = SerialScaleDriver()
 
         # Session and views state
         self.current_user: Optional[User] = None
@@ -476,12 +472,12 @@ class App(ctk.CTk):
     def _update_user_badge(self, user: Optional[User]) -> None:
         """Format display text for logged-in user in top navbar badge."""
         if not user:
-            self.user_badge_lbl.configure(text="Diego Amador")
+            self.user_badge_lbl.configure(text="Administrador")
             return
         if user.full_name and user.full_name.strip():
             display_name = user.full_name.strip()
         else:
-            display_name = user.username or "Diego Amador"
+            display_name = user.username or "Administrador"
         self.user_badge_lbl.configure(text=display_name)
 
     def _configure_nav_tabs_for_user(self) -> None:
@@ -559,8 +555,7 @@ class App(ctk.CTk):
                     logging.info("Construyendo POSFrame (primera vez)...")
                     self.frames["pos"] = POSFrame(
                         parent=target_parent,
-                        current_user=self.current_user,
-                        scale_driver=self.scale_driver
+                        current_user=self.current_user
                     )
                     logging.info("POSFrame construido exitosamente.")
                 elif frame_name == "inventory":
@@ -655,41 +650,18 @@ class App(ctk.CTk):
                 self.frames["login"].reset_fields()
 
 
-    def _on_scale_box_click(self) -> None:
-        """Trigger scale reconnection attempt on background thread without blocking UI."""
-        if not self.scale_status_lbl:
-            return
-        self.scale_status_lbl.configure(text="🔄", text_color="#38BDF8")
-
-        def _reconnect_worker():
-            is_physical = self.scale_driver.reconnect()
-            self.after(0, lambda: self._update_scale_status(is_physical))
-
-        threading.Thread(target=_reconnect_worker, daemon=True).start()
-
-    def _update_scale_status(self, is_physical: bool) -> None:
-        if not self.scale_status_lbl:
-            return
-        color = DarkTheme.SUCCESS_PRIMARY if is_physical else DarkTheme.WARNING_PRIMARY
-        self.scale_status_lbl.configure(text="⚖", text_color=color)
-
     def destroy(self) -> None:
-        """Clean teardown of hardware connections and application exit."""
+        """Clean teardown of application resources and exit."""
         if hasattr(self, "navbar_animator"):
             try:
                 self.navbar_animator.cleanup()
             except Exception:
                 pass
-        if hasattr(self, "scale_driver"):
-            try:
-                self.scale_driver.close()
-            except Exception:
-                pass
         super().destroy()
 
     def _on_close(self) -> None:
-        """Clean teardown of hardware connections and application exit."""
-        logging.info("Cerrando aplicación Carnicería San Diego...")
+        """Clean teardown of application exit."""
+        logging.info("Cerrando aplicación XL Burguer...")
         self.destroy()
 
     def _toggle_fullscreen(self, event=None) -> None:

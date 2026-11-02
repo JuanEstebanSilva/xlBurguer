@@ -1,4 +1,4 @@
-"""User model and authentication service for Carnicería San Diego.
+"""User model and authentication service for XL Burguer.
 Implements PBKDF2-HMAC-SHA256 password hashing with 600,000 iterations (OWASP Standard),
 lockout protection after repeated failed attempts, dynamic rehash of legacy hashes,
 single-administrator invariant, and strict role validation.

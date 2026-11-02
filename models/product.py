@@ -1,4 +1,4 @@
-"""Product model and stock management for Carnicería San Diego.
+"""Product model and stock management for XL Burguer.
 Implements weight conversions (g, kg, lb), catalog management, margins, and inventory operations.
 """
 
@@ -239,7 +239,10 @@ def convert_quantity_to_base(quantity: float, unit: str, sale_type: str) -> floa
             raise ValueError(f"Unidad de peso no válida: {unit}")
     unit_lower = unit.lower().strip()
     if unit_lower == "ml":
-        bottles = round(quantity / 750.0) if quantity >= 750 else 1.0
+        for pkg in (500.0, 750.0, 350.0, 355.0, 330.0, 250.0, 400.0, 1000.0):
+            if quantity >= pkg and (quantity % pkg == 0 or abs(quantity % pkg) < 1e-3):
+                return float(round(quantity / pkg))
+        bottles = round(quantity / 500.0) if quantity >= 500 else 1.0
         return float(max(1.0, bottles))
     return float(quantity)
 
@@ -248,7 +251,10 @@ def calculate_item_price(price_base: float, quantity: float, unit: str, sale_typ
     """Calculate total price in COP for an item based on unit selected and price base."""
     unit_lower = unit.lower().strip()
     if unit_lower == "ml":
-        bottles = round(quantity / 750.0) if quantity >= 750 else 1.0
+        for pkg in (500.0, 750.0, 350.0, 355.0, 330.0, 250.0, 400.0, 1000.0):
+            if quantity >= pkg and (quantity % pkg == 0 or abs(quantity % pkg) < 1e-3):
+                return round(round(quantity / pkg) * price_base)
+        bottles = round(quantity / 500.0) if quantity >= 500 else 1.0
         return round(max(1.0, bottles) * price_base)
     base_qty = convert_quantity_to_base(quantity, unit, sale_type)
     return round(base_qty * price_base)

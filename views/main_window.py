@@ -1,4 +1,4 @@
-"""Main Application Window compatibility shim for Carnicería San Diego.
+"""Main Application Window compatibility shim for XL Burguer.
 Hosts navigation sidebar and switches between POSFrame, InventoryFrame, and StatsFrame.
 Maintained for test suites and standalone window invocation.
 """
@@ -10,7 +10,6 @@ from typing import Optional
 import customtkinter as ctk
 from PIL import Image
 
-from hardware.scale_service import SerialScaleDriver
 from models.user import User
 from utils.asset_manager import get_asset_path, set_window_icon
 from utils.navbar_animator import NavbarAnimator
@@ -34,12 +33,12 @@ class MainWindow(ctk.CTk):
         if sys.platform.startswith("win"):
             import ctypes
             try:
-                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("carniceria.sandiego.pos.1.0")
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("xlburguer.pos.1.0")
             except Exception:
                 pass
 
         # Window settings
-        self.title("Sistema POS & Gestión")
+        self.title("XL Burguer - Sistema POS & Gestión")
         self.configure(fg_color=DarkTheme.BG_ROOT)
         self.minsize(980, 620)
 
@@ -53,9 +52,6 @@ class MainWindow(ctk.CTk):
             screen_w = self.winfo_screenwidth()
             screen_h = self.winfo_screenheight()
             self.geometry(f"{screen_w-20}x{screen_h-60}+0+0")
-
-        # Hardware drivers (non-blocking)
-        self.scale_driver = SerialScaleDriver()
 
         # View instances cache
         self.current_view_name = "pos"
@@ -284,8 +280,7 @@ class MainWindow(ctk.CTk):
             if view_name == "pos":
                 self.views["pos"] = POSFrame(
                     parent=self.views_container,
-                    current_user=self.current_user,
-                    scale_driver=self.scale_driver
+                    current_user=self.current_user
                 )
             elif view_name == "inventory":
                 self.views["inventory"] = InventoryFrame(
@@ -358,11 +353,6 @@ class MainWindow(ctk.CTk):
         if hasattr(self, "navbar_animator"):
             try:
                 self.navbar_animator.cleanup()
-            except Exception:
-                pass
-        if hasattr(self, "scale_driver"):
-            try:
-                self.scale_driver.close()
             except Exception:
                 pass
         super().destroy()

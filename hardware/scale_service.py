@@ -1,7 +1,7 @@
-"""Serial Scale Driver and Contract Service for Carnicería San Diego.
-Connects to digital electronic scales via RS-232 / USB Serial COM ports.
-Adheres strictly to the WeightReading contract, distinguishing stable vs unstable readings,
-preventing silent random weights in production, and normalizing gram conversion accurately.
+"""Serial Scale Driver and Contract Service for XL Burguer (Legacy Compatibility Stub).
+NOTE: In XL Burguer, physical scale hardware integration is officially deprecated and disabled in the UI.
+All sales operate on prepared items (units) with recipes tracked in grams.
+This module is maintained exclusively for backward compatibility with contract tests.
 """
 
 from dataclasses import dataclass
@@ -69,7 +69,10 @@ class SerialScaleDriver:
         self.timeout = timeout
 
         # Production rule: Mock is DISABLED unless explicitly allowed or environment flag is set
-        env_mock = os.environ.get("SANDIEGO_MOCK_SCALE", "").strip() in ("1", "true", "True")
+        env_mock = (
+            os.environ.get("XLBURGUER_MOCK_SCALE", "").strip() in ("1", "true", "True")
+            or os.environ.get("SANDIEGO_MOCK_SCALE", "").strip() in ("1", "true", "True")
+        )
         if allow_mock is None:
             self.allow_mock = force_mock or env_mock
         else:

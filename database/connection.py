@@ -1,4 +1,4 @@
-"""Database Connection and Lifecycle Manager for Carnicería San Diego.
+"""Database Connection and Lifecycle Manager for XL Burguer.
 Handles SQLite3 connection lifecycle, foreign keys, versioned migrations via PRAGMA user_version,
 atomic online backups with automatic retention rotation, and centralized AppData path resolution.
 """
@@ -33,25 +33,25 @@ def get_resource_path(relative_path: str) -> str:
 
 
 def get_app_data_dir() -> str:
-    """Return standard user data directory for Carnicería San Diego.
+    """Return standard user data directory for XL Burguer.
     In development: returns _PROJECT_ROOT.
     In frozen mode:
-      - If .portable file exists next to sys.executable or SANDIEGO_PORTABLE=1, returns exe folder.
-      - Otherwise returns %APPDATA%\\CarniceriaSanDiego (creates if not existing).
+      - If .portable file exists next to sys.executable or XLBURGUER_PORTABLE=1, returns exe folder.
+      - Otherwise returns %APPDATA%\\XLBurguer (creates if not existing).
     """
     if not getattr(sys, 'frozen', False):
         return _PROJECT_ROOT
 
     exe_dir = os.path.dirname(sys.executable)
     portable_marker = os.path.join(exe_dir, ".portable")
-    if os.path.exists(portable_marker) or os.environ.get("SANDIEGO_PORTABLE") == "1":
+    if os.path.exists(portable_marker) or os.environ.get("XLBURGUER_PORTABLE") == "1" or os.environ.get("SANDIEGO_PORTABLE") == "1":
         return exe_dir
 
     app_data = os.environ.get("APPDATA") or os.environ.get("LOCALAPPDATA")
     if not app_data:
         app_data = os.path.expanduser("~")
 
-    target_dir = os.path.join(app_data, "CarniceriaSanDiego")
+    target_dir = os.path.join(app_data, "XLBurguer")
     try:
         os.makedirs(target_dir, exist_ok=True)
     except Exception:
@@ -85,12 +85,12 @@ def get_writable_path(filename: str) -> str:
 
 def get_database_path() -> str:
     """Return writable path to SQLite database.
-    Allows test isolation via SANDIEGO_DB_PATH environment variable.
+    Allows test isolation via XLBURGUER_DB_PATH (or SANDIEGO_DB_PATH fallback) environment variable.
     """
-    custom_path = os.environ.get("SANDIEGO_DB_PATH")
+    custom_path = os.environ.get("XLBURGUER_DB_PATH") or os.environ.get("SANDIEGO_DB_PATH")
     if custom_path:
         return os.path.abspath(custom_path)
-    return get_writable_path("sandiego.db")
+    return get_writable_path("xlburguer.db")
 
 
 def backup_database(destination_dir: Optional[str] = None, max_backups: int = 10) -> Optional[str]:
@@ -107,7 +107,7 @@ def backup_database(destination_dir: Optional[str] = None, max_backups: int = 10
     os.makedirs(destination_dir, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_file = os.path.join(destination_dir, f"sandiego_backup_{timestamp}.db")
+    backup_file = os.path.join(destination_dir, f"xlburguer_backup_{timestamp}.db")
 
     try:
         src_conn = sqlite3.connect(db_path)
@@ -124,7 +124,7 @@ def backup_database(destination_dir: Optional[str] = None, max_backups: int = 10
         logging.info("Backup created successfully at: %s", backup_file)
 
         # Rotate old backups
-        backup_pattern = os.path.join(destination_dir, "sandiego_backup_*.db")
+        backup_pattern = os.path.join(destination_dir, "xlburguer_backup_*.db")
         existing_backups = sorted(glob.glob(backup_pattern), key=os.path.getmtime, reverse=True)
         if len(existing_backups) > max_backups:
             for old_b in existing_backups[max_backups:]:
@@ -192,7 +192,7 @@ def get_db_connection() -> Generator[sqlite3.Connection, None, None]:
 
 def run_versioned_migrations(conn: sqlite3.Connection) -> None:
     """Execute versioned migrations using PRAGMA user_version to ensure idempotent,
-    repeatable, and safe schema evolutions without ad-hoc mutations on boot.
+    repeatable, and safe schema evolutions.
     """
     cursor = conn.cursor()
     cursor.execute("PRAGMA user_version;")
@@ -235,7 +235,7 @@ def run_versioned_migrations(conn: sqlite3.Connection) -> None:
         if "iva" not in prod_cols:
             cursor.execute("ALTER TABLE products ADD COLUMN iva REAL NOT NULL DEFAULT 0;")
         if "unit_measure" not in prod_cols:
-            cursor.execute("ALTER TABLE products ADD COLUMN unit_measure TEXT NOT NULL DEFAULT 'kg';")
+            cursor.execute("ALTER TABLE products ADD COLUMN unit_measure TEXT NOT NULL DEFAULT 'und';")
 
         # sales
         cursor.execute("PRAGMA table_info(sales);")
@@ -317,12 +317,7 @@ def run_versioned_migrations(conn: sqlite3.Connection) -> None:
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_cash_shifts_user ON cash_shifts (user_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs (action);")
 
-        # Initialize sequence from max current sales
-        cursor.execute("SELECT MAX(id) FROM sales;")
-        max_row = cursor.fetchone()
-        max_val = max_row[0] if max_row and max_row[0] else 0
-        cursor.execute("INSERT OR REPLACE INTO invoice_sequences (prefix, last_number) VALUES ('SD', ?);", (max_val,))
-
+        cursor.execute("INSERT OR IGNORE INTO invoice_sequences (prefix, last_number) VALUES ('XL', 0);")
         conn.commit()
         conn.execute("PRAGMA user_version = 2;")
         current_version = 2
@@ -337,6 +332,62 @@ def run_versioned_migrations(conn: sqlite3.Connection) -> None:
         conn.execute("PRAGMA user_version = 3;")
         current_version = 3
         logging.info("Migración V3 completada exitosamente.")
+
+    # Migration 4: Ingredients, Recipes and Inventory Movements for XL Burguer
+    if current_version < 4:
+        logging.info("Aplicando migración V4: Ingredientes, Recetas y Movimientos XL Burguer...")
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ingredients (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                description TEXT,
+                stock_g REAL NOT NULL DEFAULT 0,
+                min_stock_g REAL NOT NULL DEFAULT 0,
+                cost_per_g REAL NOT NULL DEFAULT 0,
+                is_active INTEGER NOT NULL DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS product_recipes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                product_id INTEGER NOT NULL,
+                ingredient_id INTEGER NOT NULL,
+                quantity_g REAL NOT NULL,
+                FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
+                FOREIGN KEY (ingredient_id) REFERENCES ingredients (id) ON DELETE RESTRICT,
+                UNIQUE (product_id, ingredient_id)
+            );
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS inventory_movements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ingredient_id INTEGER,
+                product_id INTEGER,
+                movement_type TEXT NOT NULL CHECK (movement_type IN ('VENTA', 'COMPRA', 'AJUSTE', 'MERMA', 'INICIAL')),
+                quantity REAL NOT NULL,
+                previous_stock REAL NOT NULL,
+                new_stock REAL NOT NULL,
+                reference_id TEXT,
+                notes TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (ingredient_id) REFERENCES ingredients (id) ON DELETE SET NULL,
+                FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE SET NULL
+            );
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_ingredients_name ON ingredients (name);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_product_recipes_prod ON product_recipes (product_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_product_recipes_ing ON product_recipes (ingredient_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_inv_movements_ing ON inventory_movements (ingredient_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_inv_movements_prod ON inventory_movements (product_id);")
+
+        # Initialize XL invoice prefix
+        cursor.execute("INSERT OR IGNORE INTO invoice_sequences (prefix, last_number) VALUES ('XL', 0);")
+
+        conn.commit()
+        conn.execute("PRAGMA user_version = 4;")
+        current_version = 4
+        logging.info("Migración V4 completada exitosamente.")
 
 
 def initialize_database() -> None:
@@ -356,20 +407,18 @@ def initialize_database() -> None:
         has_existing_db = cursor.fetchone() is not None
 
         if has_existing_db:
-            # Upgrade existing schema columns first before executing full DDL script with new indexes
             run_versioned_migrations(conn)
 
         cursor.executescript(ddl_script)
         conn.commit()
 
         if not has_existing_db:
-            conn.execute("PRAGMA user_version = 3;")
+            conn.execute("PRAGMA user_version = 4;")
             conn.commit()
         else:
-            # Ensure latest version is reflected
             run_versioned_migrations(conn)
 
-        # Seed catalog and base categories (never re-injects dummy cashiers or fake customers)
+        # Seed catalog and base fast-food items
         seed_database(conn)
 
 

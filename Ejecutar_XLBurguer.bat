@@ -1,9 +1,9 @@
 @echo off
-title Carniceria San Diego POS
+title XL Burguer POS
 cd /d "%~dp0"
 
-if exist "dist\CarniceriaSanDiego\CarniceriaSanDiego.exe" (
-    start "" "dist\CarniceriaSanDiego\CarniceriaSanDiego.exe"
+if exist "dist\XLBurguer\XLBurguer.exe" (
+    start "" "dist\XLBurguer\XLBurguer.exe"
 ) else (
     where python >nul 2>nul
     if %errorlevel% equ 0 (
