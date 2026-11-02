@@ -1,0 +1,7 @@
+# Carnicería San Diego POS - Dependencias de Ejecución (Fijadas)
+customtkinter>=5.2.2,<=6.0.0
+Pillow>=10.0.0,<=12.3.0
+openpyxl>=3.1.2,<=3.1.5
+pyserial==3.5
+pywin32>=306,<=311
+darkdetect==0.8.0
