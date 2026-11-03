@@ -64,6 +64,7 @@ class TestProductsModule(unittest.TestCase):
                 unit_measure TEXT NOT NULL DEFAULT 'kg',
                 stock REAL NOT NULL DEFAULT 0,
                 min_stock REAL NOT NULL DEFAULT 0,
+                is_active INTEGER NOT NULL DEFAULT 1,
                 FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE RESTRICT
             );
 

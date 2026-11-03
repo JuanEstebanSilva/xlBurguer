@@ -545,8 +545,9 @@ class ProductDetailModal(ctk.CTkToplevel):
 
     def _on_manage_recipe(self) -> None:
         p = self.product
+        master = self.master
         self.destroy()
-        RecipeManagerModal(self.master, selected_product_id=p.id)
+        RecipeManagerModal(master, selected_product_id=p.id, on_recipe_saved_callback=getattr(master, "load_data", None))
 
     def _on_edit_click(self) -> None:
         p = self.product

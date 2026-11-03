@@ -45,7 +45,7 @@ class RecipeManagerModal(ctk.CTkToplevel):
         self.current_recipe_items: List[Dict[str, Any]] = []
 
         with get_db_connection() as conn:
-            self.all_products = [p for p in ProductModel.get_all(conn) if p.is_active]
+            self.all_products = [p for p in ProductModel.get_all(conn) if getattr(p, "is_active", True)]
             self.all_ingredients = IngredientModel.get_all(conn, active_only=True)
 
         self._build_ui()

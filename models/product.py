@@ -21,6 +21,7 @@ class Product:
     cost: float = 0.0  # Cost per gram (PESO) or unit cost (UNIDAD)
     iva: float = 0.0  # IVA percentage (e.g. 0, 5, 19)
     unit_measure: str = "kg"  # 'kg', 'g', 'lb', 'und', 'pqte', 'cubeta', 'botella', 'pza'
+    is_active: bool = True
 
     @property
     def low_stock_threshold(self) -> float:
@@ -303,7 +304,8 @@ class ProductModel:
             min_stock=float(row["min_stock"]),
             cost=float(row["cost"]) if "cost" in keys and row["cost"] is not None else 0.0,
             iva=float(row["iva"]) if "iva" in keys and row["iva"] is not None else 0.0,
-            unit_measure=row["unit_measure"] if "unit_measure" in keys and row["unit_measure"] else ("kg" if row["sale_type"] == "PESO" else "und")
+            unit_measure=row["unit_measure"] if "unit_measure" in keys and row["unit_measure"] else ("kg" if row["sale_type"] == "PESO" else "und"),
+            is_active=bool(row["is_active"]) if "is_active" in keys and row["is_active"] is not None else True
         )
 
     @staticmethod
@@ -319,7 +321,7 @@ class ProductModel:
         sql = """
             SELECT p.id, p.barcode, p.name, p.category_id, c.name as category_name,
                    p.sale_type, p.price_base, p.cost, p.iva, p.unit_measure,
-                   p.stock, p.min_stock
+                   p.stock, p.min_stock, p.is_active
             FROM products p
             JOIN categories c ON p.category_id = c.id
             WHERE 1=1
@@ -369,7 +371,7 @@ class ProductModel:
             """
             SELECT p.id, p.barcode, p.name, p.category_id, c.name as category_name,
                    p.sale_type, p.price_base, p.cost, p.iva, p.unit_measure,
-                   p.stock, p.min_stock
+                   p.stock, p.min_stock, p.is_active
             FROM products p
             JOIN categories c ON p.category_id = c.id
             WHERE p.id = ?
@@ -393,7 +395,7 @@ class ProductModel:
             """
             SELECT p.id, p.barcode, p.name, p.category_id, c.name as category_name,
                    p.sale_type, p.price_base, p.cost, p.iva, p.unit_measure,
-                   p.stock, p.min_stock
+                   p.stock, p.min_stock, p.is_active
             FROM products p
             JOIN categories c ON p.category_id = c.id
             WHERE p.barcode = ? OR p.barcode = ? OR CAST(p.id AS TEXT) = ?
@@ -418,7 +420,7 @@ class ProductModel:
             """
             SELECT p.id, p.barcode, p.name, p.category_id, c.name as category_name,
                    p.sale_type, p.price_base, p.cost, p.iva, p.unit_measure,
-                   p.stock, p.min_stock
+                   p.stock, p.min_stock, p.is_active
             FROM products p
             JOIN categories c ON p.category_id = c.id
             WHERE p.barcode = ?
@@ -434,7 +436,7 @@ class ProductModel:
                 """
                 SELECT p.id, p.barcode, p.name, p.category_id, c.name as category_name,
                        p.sale_type, p.price_base, p.cost, p.iva, p.unit_measure,
-                       p.stock, p.min_stock
+                       p.stock, p.min_stock, p.is_active
                 FROM products p
                 JOIN categories c ON p.category_id = c.id
                 WHERE p.barcode = ? OR p.id = ?
@@ -453,7 +455,7 @@ class ProductModel:
                     """
                     SELECT p.id, p.barcode, p.name, p.category_id, c.name as category_name,
                            p.sale_type, p.price_base, p.cost, p.iva, p.unit_measure,
-                           p.stock, p.min_stock
+                           p.stock, p.min_stock, p.is_active
                     FROM products p
                     JOIN categories c ON p.category_id = c.id
                     WHERE NORMALIZE_TEXT(p.name) = ?
@@ -468,7 +470,7 @@ class ProductModel:
                         """
                         SELECT p.id, p.barcode, p.name, p.category_id, c.name as category_name,
                                p.sale_type, p.price_base, p.cost, p.iva, p.unit_measure,
-                               p.stock, p.min_stock
+                               p.stock, p.min_stock, p.is_active
                         FROM products p
                         JOIN categories c ON p.category_id = c.id
                         WHERE NORMALIZE_TEXT(p.name) LIKE ?
@@ -546,7 +548,8 @@ class ProductModel:
         unit_measure: str = "kg",
         stock: float = 0.0,
         min_stock: float = 0.0,
-        custom_id: Optional[int] = None
+        custom_id: Optional[int] = None,
+        is_active: bool = True
     ) -> int:
         """Insert a new product record with optional user-specified ID."""
         cursor = conn.cursor()
@@ -558,8 +561,8 @@ class ProductModel:
         if custom_id is not None:
             cursor.execute(
                 """
-                INSERT INTO products (id, barcode, name, category_id, sale_type, price_base, cost, iva, unit_measure, stock, min_stock)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO products (id, barcode, name, category_id, sale_type, price_base, cost, iva, unit_measure, stock, min_stock, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     int(custom_id),
@@ -572,7 +575,8 @@ class ProductModel:
                     float(iva),
                     clean_unit,
                     max(0.0, float(stock)),
-                    max(0.0, float(min_stock))
+                    max(0.0, float(min_stock)),
+                    1 if is_active else 0
                 )
             )
             conn.commit()
@@ -580,8 +584,8 @@ class ProductModel:
         else:
             cursor.execute(
                 """
-                INSERT INTO products (barcode, name, category_id, sale_type, price_base, cost, iva, unit_measure, stock, min_stock)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO products (barcode, name, category_id, sale_type, price_base, cost, iva, unit_measure, stock, min_stock, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     clean_barcode,
@@ -593,7 +597,8 @@ class ProductModel:
                     float(iva),
                     clean_unit,
                     max(0.0, float(stock)),
-                    max(0.0, float(min_stock))
+                    max(0.0, float(min_stock)),
+                    1 if is_active else 0
                 )
             )
             conn.commit()
@@ -612,7 +617,8 @@ class ProductModel:
         iva: float = 0.0,
         unit_measure: str = "kg",
         stock: float = 0.0,
-        min_stock: float = 0.0
+        min_stock: float = 0.0,
+        is_active: Optional[bool] = None
     ) -> None:
         """Update an existing product record."""
         cursor = conn.cursor()
@@ -621,28 +627,53 @@ class ProductModel:
         clean_sale_type = sale_type.strip().upper()
         clean_unit = unit_measure.strip().lower() if unit_measure and unit_measure.strip() else ("kg" if clean_sale_type == "PESO" else "und")
 
-        cursor.execute(
-            """
-            UPDATE products
-            SET barcode = ?, name = ?, category_id = ?, sale_type = ?,
-                price_base = ?, cost = ?, iva = ?, unit_measure = ?,
-                stock = ?, min_stock = ?
-            WHERE id = ?
-            """,
-            (
-                clean_barcode,
-                clean_name,
-                int(category_id),
-                clean_sale_type,
-                float(price_base),
-                float(cost),
-                float(iva),
-                clean_unit,
-                max(0.0, float(stock)),
-                max(0.0, float(min_stock)),
-                int(product_id)
+        if is_active is not None:
+            cursor.execute(
+                """
+                UPDATE products
+                SET barcode = ?, name = ?, category_id = ?, sale_type = ?,
+                    price_base = ?, cost = ?, iva = ?, unit_measure = ?,
+                    stock = ?, min_stock = ?, is_active = ?
+                WHERE id = ?
+                """,
+                (
+                    clean_barcode,
+                    clean_name,
+                    int(category_id),
+                    clean_sale_type,
+                    float(price_base),
+                    float(cost),
+                    float(iva),
+                    clean_unit,
+                    max(0.0, float(stock)),
+                    max(0.0, float(min_stock)),
+                    1 if is_active else 0,
+                    int(product_id)
+                )
             )
-        )
+        else:
+            cursor.execute(
+                """
+                UPDATE products
+                SET barcode = ?, name = ?, category_id = ?, sale_type = ?,
+                    price_base = ?, cost = ?, iva = ?, unit_measure = ?,
+                    stock = ?, min_stock = ?
+                WHERE id = ?
+                """,
+                (
+                    clean_barcode,
+                    clean_name,
+                    int(category_id),
+                    clean_sale_type,
+                    float(price_base),
+                    float(cost),
+                    float(iva),
+                    clean_unit,
+                    max(0.0, float(stock)),
+                    max(0.0, float(min_stock)),
+                    int(product_id)
+                )
+            )
         conn.commit()
 
     @staticmethod

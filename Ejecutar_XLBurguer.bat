@@ -14,3 +14,4 @@ if exist "dist\XLBurguer\XLBurguer.exe" (
         py main.py
     )
 )
+

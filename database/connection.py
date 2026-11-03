@@ -236,6 +236,8 @@ def run_versioned_migrations(conn: sqlite3.Connection) -> None:
             cursor.execute("ALTER TABLE products ADD COLUMN iva REAL NOT NULL DEFAULT 0;")
         if "unit_measure" not in prod_cols:
             cursor.execute("ALTER TABLE products ADD COLUMN unit_measure TEXT NOT NULL DEFAULT 'und';")
+        if "is_active" not in prod_cols:
+            cursor.execute("ALTER TABLE products ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1;")
 
         # sales
         cursor.execute("PRAGMA table_info(sales);")
@@ -389,6 +391,18 @@ def run_versioned_migrations(conn: sqlite3.Connection) -> None:
         current_version = 4
         logging.info("Migración V4 completada exitosamente.")
 
+    # Migration 5: Ensure is_active column on products table
+    if current_version < 5:
+        logging.info("Aplicando migración V5: Verificación columna is_active en products...")
+        cursor.execute("PRAGMA table_info(products);")
+        prod_cols = [r["name"] for r in cursor.fetchall()]
+        if "is_active" not in prod_cols:
+            cursor.execute("ALTER TABLE products ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1;")
+        conn.commit()
+        conn.execute("PRAGMA user_version = 5;")
+        current_version = 5
+        logging.info("Migración V5 completada exitosamente.")
+
 
 def initialize_database() -> None:
     """Initialize database tables from schema.sql, apply versioned migrations,
@@ -413,7 +427,7 @@ def initialize_database() -> None:
         conn.commit()
 
         if not has_existing_db:
-            conn.execute("PRAGMA user_version = 4;")
+            conn.execute("PRAGMA user_version = 5;")
             conn.commit()
         else:
             run_versioned_migrations(conn)

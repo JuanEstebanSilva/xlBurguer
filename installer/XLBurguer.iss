@@ -68,3 +68,4 @@ begin
            ExpandConstant('{userappdata}\XLBurguer'), mbInformation, MB_OK);
   end;
 end;
+
