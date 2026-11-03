@@ -1,4 +1,4 @@
-"""Barcode Scanner HID Buffer Handler for Carnicería San Diego.
+"""Barcode Scanner HID Buffer Handler for XL Burguer POS.
 Differentiates between human typing and ultra-fast hardware barcode scanner bursts.
 """
 

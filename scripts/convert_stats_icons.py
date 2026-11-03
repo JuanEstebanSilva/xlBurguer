@@ -1,4 +1,4 @@
-"""SVG to Colored PNG Batch Renderer for Carnicería San Diego.
+"""SVG to Colored PNG Batch Renderer for XL Burguer POS.
 Converts vector SVGs in icons/ to crisp, anti-aliased PNG icons with custom fills
 using headless Chromium/Edge rendering.
 """

@@ -1,4 +1,4 @@
-"""Unit tests verifying all functionality fixes for Carnicería San Diego POS.
+"""Unit tests verifying all functionality fixes for XL Burguer POS.
 
 Tests cover:
 1. NORMALIZE_TEXT and accent-insensitive product queries.

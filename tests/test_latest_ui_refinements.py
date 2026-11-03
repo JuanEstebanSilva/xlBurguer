@@ -86,8 +86,8 @@ class TestLatestUIRefinements(unittest.TestCase):
             {"payment_method": "TRANSFERENCIA", "tot": 570000.0}
         ]
         category_data = [
-            {"category_name": "Vinos de Villa de Leyva", "tot": 986000.0},
-            {"category_name": "Cortes de Res", "tot": 675000.0}
+            {"category_name": "Bebidas y Gaseosas", "tot": 986000.0},
+            {"category_name": "Hamburguesas Clásicas", "tot": 675000.0}
         ]
         widget.set_data(payment_data, category_data)
         self.root.update_idletasks()

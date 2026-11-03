@@ -331,7 +331,7 @@ class App(ctk.CTk):
         # ── Left Side: Logo & Navigation Tabs ──────────────────────────────────
         letters_path = get_asset_path("logoHorizontal.png")
         if not os.path.exists(letters_path):
-            letters_path = get_asset_path("icono San Diego")
+            letters_path = get_asset_path("XL_Burguer_logo.png")
         if os.path.exists(letters_path):
             try:
                 pil_let = Image.open(letters_path).convert("RGBA")
@@ -442,7 +442,7 @@ class App(ctk.CTk):
 
         self.user_badge_lbl = ctk.CTkLabel(
             self.user_badge_frame,
-            text="Diego Amador",
+            text="Administrador",
             font=ctk.CTkFont(family="Segoe UI", size=12),
             text_color="#CBD5E1"
         )
@@ -695,7 +695,7 @@ def main() -> None:
     sys.excepthook = global_exception_handler
     tk.Tk.report_callback_exception = global_exception_handler
 
-    logging.info("=== Iniciando Carnicería San Diego POS ===")
+    logging.info("=== Iniciando XL Burguer POS ===")
 
     # 1. Configure CustomTkinter Aesthetics (Dark Gourmet Butcher Edition)
     ctk.set_appearance_mode("dark")

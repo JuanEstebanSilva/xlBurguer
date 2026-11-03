@@ -1,4 +1,4 @@
-"""Asset Manager for Carnicería San Diego.
+"""Asset Manager for XL Burguer POS.
 Automatically loads visual assets (logo, background, icon) and generates
 high-quality placeholders using Pillow if missing in development.
 """
@@ -525,9 +525,9 @@ def build_standard_modal_header(
     height: int = 50,
     title_below_topbar: bool = True
 ) -> Tuple[Any, Any]:
-    """Builds the standardized executive topbar across all modals in Carnicería San Diego:
+    """Builds the standardized executive topbar across all modals in XL Burguer:
     - Topbar (full width, dark background #13151B):
-        * Left: Official San Diego horizontal brand logo ('logoHorizontal.png')
+        * Left: Official XL Burguer horizontal brand logo ('logoHorizontal.png')
         * Right: HunzaIA corporate emblem ('hunzaia.png') + optional close button ('✕')
     - 1px divider underneath topbar (#252836)
     - Below topbar: Centered executive title banner with contextual icon in brand golden-ochre (#C5A059)
@@ -543,7 +543,7 @@ def build_standard_modal_header(
     tb_content = ctk.CTkFrame(topbar, fg_color="transparent")
     tb_content.pack(fill="both", expand=True, padx=16)
 
-    # 1. Left: Official San Diego Horizontal Logo
+    # 1. Left: Official XL Burguer Horizontal Logo
     left_box = ctk.CTkFrame(tb_content, fg_color="transparent")
     left_box.pack(side="left", fill="y")
 
@@ -553,9 +553,9 @@ def build_standard_modal_header(
     else:
         ctk.CTkLabel(
             left_box,
-            text="SAN DIEGO\nCORTES MADURADOS",
-            font=ctk.CTkFont(family="Cambria", size=11, weight="bold"),
-            text_color="#C5A059"
+            text="XL BURGUER\nCOMIDAS RÁPIDAS",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            text_color="#F59E0B"
         ).pack(side="left")
 
     # 2. Right: HunzaIA partner emblem + Optional close button

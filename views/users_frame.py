@@ -1864,7 +1864,7 @@ class CompanyDetailModal(ctk.CTkToplevel):
                     ctk.CTkLabel(lbl_box, image=ico, text="").pack(side="left", padx=(0, 4))
             ctk.CTkLabel(lbl_box, text=f"{title}: {val}", font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color=text_color).pack(side="left")
 
-        _make_kpi_card(kpi_row, 0, "Cortes Convenio", str(c_cnt), "#38BDF8", "#0284C7", "#082F49", icon_name="meat_sky")
+        _make_kpi_card(kpi_row, 0, "Productos Convenio", str(c_cnt), "#38BDF8", "#0284C7", "#082F49", icon_name="cube_sky")
         _make_kpi_card(kpi_row, 1, "Cupo Total", f"{tot_cupo:.1f} kg", "#67E8F9", "#0E7490", "#083344", icon_name="box_open_cyan")
         _make_kpi_card(kpi_row, 2, "Saldo Disponible", f"{tot_rem:.1f} kg", "#34D399", "#10B981", "#064E3B", icon_name="box_open_green")
         _make_kpi_card(kpi_row, 3, "Total Fiado", f"${tot_fiado:,.0f} COP", "#FBBF24", "#F59E0B", "#451A03", icon_name="coins_gold")
@@ -2167,7 +2167,7 @@ class CompanyDetailModal(ctk.CTkToplevel):
             empty_box.pack(pady=16)
             ctk.CTkLabel(
                 empty_box,
-                text="Sin convenios asignados. Haga clic en '  Asignar Producto' para registrar cortes y cupos.",
+                text="Sin convenios asignados. Haga clic en '  Asignar Producto' para registrar productos y cupos.",
                 font=ctk.CTkFont(family="Segoe UI", size=11, slant="italic"),
                 text_color=DarkTheme.TEXT_MUTED
             ).pack()
@@ -2943,10 +2943,10 @@ class FiadosDashboardModal(ctk.CTkToplevel):
             lbl_v.pack(pady=(0, 6))
             return lbl_v
 
-        self.kpi_widgets["cortes"] = _make_kpi(0, "Cortes en Convenio", "0", "#38BDF8", "#0284C7", "#0A192F", icon_name="meat_sky")
-        self.kpi_widgets["cupo"] = _make_kpi(1, "Cupo Total Asignado", "0.0 kg", "#22D3EE", "#0891B2", "#082836", icon_name="box_open_cyan")
-        self.kpi_widgets["entregado"] = _make_kpi(2, "Despachado", "0.0 kg", "#FBBF24", "#D97706", "#24180A", icon_name="truck_fast_amber")
-        self.kpi_widgets["saldo"] = _make_kpi(3, "Saldo Restante", "0.0 kg", "#FB7185", "#F43F5E", "#2D0B18", icon_name="scale_pink")
+        self.kpi_widgets["convenio_prods"] = _make_kpi(0, "Productos en Convenio", "0", "#38BDF8", "#0284C7", "#0A192F", icon_name="cube_sky")
+        self.kpi_widgets["cupo"] = _make_kpi(1, "Cupo Total Asignado", "0", "#22D3EE", "#0891B2", "#082836", icon_name="box_open_cyan")
+        self.kpi_widgets["entregado"] = _make_kpi(2, "Despachado", "0", "#FBBF24", "#D97706", "#24180A", icon_name="truck_fast_amber")
+        self.kpi_widgets["saldo"] = _make_kpi(3, "Saldo Restante", "0", "#FB7185", "#F43F5E", "#2D0B18", icon_name="box_open_cyan")
 
         # 4. Quotas Table Section
         quotas_box = ctk.CTkFrame(body, fg_color="#131826", border_color="#283347", border_width=1.2, corner_radius=8)
@@ -3136,10 +3136,10 @@ class FiadosDashboardModal(ctk.CTkToplevel):
         tot_consumed = sum(q["consumed_quantity"] for q in self.quotas)
         tot_rem = sum(q["remaining_quantity"] for q in self.quotas)
 
-        self.kpi_widgets["cortes"].configure(text=str(c_count))
-        self.kpi_widgets["cupo"].configure(text=f"{tot_cupo:.1f} kg")
-        self.kpi_widgets["entregado"].configure(text=f"{tot_consumed:.1f} kg")
-        self.kpi_widgets["saldo"].configure(text=f"{tot_rem:.1f} kg")
+        self.kpi_widgets["convenio_prods"].configure(text=str(c_count))
+        self.kpi_widgets["cupo"].configure(text=f"{tot_cupo:.1f}")
+        self.kpi_widgets["entregado"].configure(text=f"{tot_consumed:.1f}")
+        self.kpi_widgets["saldo"].configure(text=f"{tot_rem:.1f}")
 
         # 4. Render Quota rows
         for w in self.quotas_scroll.winfo_children():
@@ -3150,7 +3150,7 @@ class FiadosDashboardModal(ctk.CTkToplevel):
             empty.pack(expand=True, fill="both", pady=30)
             ctk.CTkLabel(
                 empty,
-                text="Esta empresa no tiene convenios de cortes asignados todavía.\nHaga clic en '  Asignar Fiado' para registrar uno.",
+                text="Esta empresa no tiene convenios de productos asignados todavía.\nHaga clic en '  Asignar Fiado' para registrar uno.",
                 font=ctk.CTkFont(family="Segoe UI", size=11, slant="italic"),
                 text_color=DarkTheme.TEXT_MUTED
             ).pack()

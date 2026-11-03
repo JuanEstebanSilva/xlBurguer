@@ -1,4 +1,4 @@
-"""Views package for Carnicería San Diego POS System."""
+"""Views package for XL Burguer POS System."""
 
 from views.about_modal import AboutModal
 from views.calendar_modal import CalendarPickerModal

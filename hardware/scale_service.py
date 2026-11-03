@@ -71,7 +71,7 @@ class SerialScaleDriver:
         # Production rule: Mock is DISABLED unless explicitly allowed or environment flag is set
         env_mock = (
             os.environ.get("XLBURGUER_MOCK_SCALE", "").strip() in ("1", "true", "True")
-            or os.environ.get("SANDIEGO_MOCK_SCALE", "").strip() in ("1", "true", "True")
+            or os.environ.get("XLBURGUER_MOCK_SCALE", "").strip() in ("1", "true", "True")
         )
         if allow_mock is None:
             self.allow_mock = force_mock or env_mock

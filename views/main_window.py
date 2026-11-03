@@ -92,7 +92,7 @@ class MainWindow(ctk.CTk):
         # ── Left Side: Logo & Navigation Tabs ──────────────────────────────────
         letters_path = get_asset_path("logoHorizontal.png")
         if not os.path.exists(letters_path):
-            letters_path = get_asset_path("icono San Diego")
+            letters_path = get_asset_path("XL_Burguer_logo.png")
         if os.path.exists(letters_path):
             try:
                 pil_let = Image.open(letters_path).convert("RGBA")

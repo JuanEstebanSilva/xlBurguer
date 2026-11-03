@@ -1,4 +1,4 @@
-"""Unit and integration test suite for the Products & Inventory Module in Carnicería San Diego.
+"""Unit and integration test suite for the Products & Inventory Module in XL Burguer.
 Validates:
 - Product model dataclass attributes (ID, barcode, name, category, unit_measure, price_base, cost, iva, stock, min_stock).
 - Automated inventory status (Agotado, Bajo, Normal) derived strictly from stock vs min_stock.
@@ -70,7 +70,7 @@ class TestProductsModule(unittest.TestCase):
 
             INSERT INTO categories (id, name) VALUES (1, 'Carnes de Res');
             INSERT INTO categories (id, name) VALUES (2, 'Vinos y Licores');
-            INSERT INTO categories (id, name) VALUES (3, 'Amasijos de Boyacá');
+            INSERT INTO categories (id, name) VALUES (3, 'Acompañamientos');
         """)
         self.conn.commit()
 

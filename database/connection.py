@@ -44,7 +44,7 @@ def get_app_data_dir() -> str:
 
     exe_dir = os.path.dirname(sys.executable)
     portable_marker = os.path.join(exe_dir, ".portable")
-    if os.path.exists(portable_marker) or os.environ.get("XLBURGUER_PORTABLE") == "1" or os.environ.get("SANDIEGO_PORTABLE") == "1":
+    if os.path.exists(portable_marker) or os.environ.get("XLBURGUER_PORTABLE") == "1":
         return exe_dir
 
     app_data = os.environ.get("APPDATA") or os.environ.get("LOCALAPPDATA")
@@ -85,9 +85,9 @@ def get_writable_path(filename: str) -> str:
 
 def get_database_path() -> str:
     """Return writable path to SQLite database.
-    Allows test isolation via XLBURGUER_DB_PATH (or SANDIEGO_DB_PATH fallback) environment variable.
+    Allows test isolation via XLBURGUER_DB_PATH environment variable.
     """
-    custom_path = os.environ.get("XLBURGUER_DB_PATH") or os.environ.get("SANDIEGO_DB_PATH")
+    custom_path = os.environ.get("XLBURGUER_DB_PATH")
     if custom_path:
         return os.path.abspath(custom_path)
     return get_writable_path("xlburguer.db")

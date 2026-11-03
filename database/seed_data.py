@@ -1,6 +1,6 @@
 """Seed database with initial categories, default fast-food catalog, ingredients in grams,
 and base recipes for XL Burguer.
-Guarantees clean baseline initialization without demo carnicería data or dummy customers.
+Guarantees clean baseline initialization of fast food categories, ingredients, and base items without dummy customers.
 """
 
 import logging

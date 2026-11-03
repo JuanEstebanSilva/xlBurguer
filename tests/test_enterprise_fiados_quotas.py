@@ -1,4 +1,4 @@
-"""Comprehensive automated tests for Enterprise Product Quota Fiados (Carnicería San Diego).
+"""Comprehensive automated tests for Enterprise Product Quota Fiados (XL Burguer).
 Verifies:
 1. Enterprise creation with customer_type = 'EMPRESA'.
 2. Setting and editing product quotas (Cupos de Fiado por Producto).

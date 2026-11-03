@@ -92,7 +92,7 @@ class CashShiftModel:
 
         cursor.execute("SELECT full_name FROM users WHERE id = ?", (user_id,))
         urow = cursor.fetchone()
-        u_name = urow["full_name"] if (urow and urow["full_name"]) else "Diego Amador"
+        u_name = urow["full_name"] if (urow and urow["full_name"]) else "Administrador XL"
 
         # Audit log
         cursor.execute(

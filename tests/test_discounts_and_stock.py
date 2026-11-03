@@ -36,7 +36,7 @@ class TestDiscountsAndStockDeduction(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.environ.pop("XLBURGUER_DB_PATH", None)
-        os.environ.pop("SANDIEGO_DB_PATH", None)
+        os.environ.pop("XLBURGUER_DB_PATH", None)
         try:
             cls.temp_dir.cleanup()
         except Exception:
@@ -55,7 +55,7 @@ class TestDiscountsAndStockDeduction(unittest.TestCase):
             cur.execute(
                 """
                 INSERT INTO products (barcode, name, category_id, sale_type, price_base, cost, iva, unit_measure, stock, min_stock)
-                VALUES ('TEST_WINE_10', 'Vino Reserva San Diego Test 750ml', ?, 'UNIDAD', 68000.0, 40000.0, 19.0, 'und', 10.0, 2.0)
+                VALUES ('TEST_BEVERAGE_10', 'Bebida Gaseosa XL Test 750ml', ?, 'UNIDAD', 68000.0, 40000.0, 19.0, 'und', 10.0, 2.0)
                 """,
                 (cat_id,)
             )
@@ -366,8 +366,8 @@ class TestDiscountsAndStockDeduction(unittest.TestCase):
         ]
 
         ticket = format_ticket(
-            invoice_number="SD-TEST01",
-            cashier_name="Diego Amador",
+            invoice_number="XL-TEST01",
+            cashier_name="Cajero XL Burguer",
             items=items,
             subtotal=34000.0,
             total=34000.0,
@@ -379,7 +379,7 @@ class TestDiscountsAndStockDeduction(unittest.TestCase):
         self.assertIn("Desc. 50%", ticket)
         self.assertIn("-$ 34.000", ticket)
         self.assertIn("DESCUENTOS:", ticket)
-        self.assertIn("Diego Amador", ticket)
+        self.assertIn("Cajero XL Burguer", ticket)
 
     # ──────────────────────────────────────────────────────────────────────────
     # 8. ICON AVAILABILITY & INTEGRITY

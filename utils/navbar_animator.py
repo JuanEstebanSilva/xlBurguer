@@ -1,4 +1,4 @@
-"""Navbar Animator and Dynamic Micro-Interactions for Carnicería San Diego.
+"""Navbar Animator and Dynamic Micro-Interactions for XL Burguer POS.
 
 Provides smooth 60fps eased tab morphing, interactive button micro-expansions,
 hover glow transitions, and tactile button press animations for the top navigation bar.

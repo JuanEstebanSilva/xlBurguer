@@ -1,4 +1,4 @@
-"""POS (Point of Sale) Frame for Carnicería San Diego.
+"""POS (Point of Sale) Frame for XL Burguer.
 Sober, ergonomic, high-performance butcher counter presentation layer.
 Features a 50/50 Split View:
 - Left Panel: Customer identification bar (Cédula lookup, Case A badge, Case B inline quick registration),
@@ -268,7 +268,7 @@ class ProductDiscountModal(ctk.CTkToplevel):
             self.entry_frame.configure(border_color="#60A5FA" if focused else "#2563EB")
 
     def _build_ui(self, product_name: str) -> None:
-        # 1. Standard Executive Topbar with San Diego & HunzaIA Logos (Without X close button, white icon & text)
+        # 1. Standard Executive Topbar with XL Burguer & HunzaIA Logos (Without X close button, white icon & text)
         disc_icon = get_ctk_icon("percent_white", size=(16, 16)) or get_ctk_icon("percent-solid-full", size=(16, 16))
         build_standard_modal_header(
             self,
@@ -875,8 +875,8 @@ class CompanyQuickQuotasModal(ctk.CTkToplevel):
                 row.grid_columnconfigure(2, weight=0, minsize=105)
                 row.grid_columnconfigure(3, weight=0, minsize=125)
 
-                meat_ico = get_ctk_icon("meat_white", size=(14, 14))
-                ctk.CTkLabel(row, image=meat_ico, compound="left", text=f"  {q['product_name']}", font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"), text_color="#F8FAFC", anchor="w").grid(row=0, column=0, sticky="ew", padx=(12, 4))
+                prod_ico = get_ctk_icon("cube_white", size=(14, 14)) or get_ctk_icon("box_open_white", size=(14, 14))
+                ctk.CTkLabel(row, image=prod_ico, compound="left", text=f"  {q['product_name']}", font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"), text_color="#F8FAFC", anchor="w").grid(row=0, column=0, sticky="ew", padx=(12, 4))
                 ctk.CTkLabel(row, text=f"{q['quota_quantity']:.2f} {q['unit']}", font=ctk.CTkFont(family="Segoe UI", size=11), text_color="#94A3B8", anchor="center").grid(row=0, column=1, sticky="ew", padx=4)
                 ctk.CTkLabel(row, text=f"{q['consumed_quantity']:.2f} {q['unit']}", font=ctk.CTkFont(family="Segoe UI", size=11), text_color="#F87171", anchor="center").grid(row=0, column=2, sticky="ew", padx=4)
 
@@ -1023,7 +1023,7 @@ class CheckoutModal(ctk.CTkToplevel):
         self.main_container.pack(fill="both", expand=True, padx=22, pady=(2, 16))
 
         # Cashier & Customer Pills stacked below header banner
-        cashier_name = "Diego Amador"
+        cashier_name = "Cajero XL Burguer"
         if hasattr(parent, "current_user") and parent.current_user:
             try:
                 from database.connection import get_db_connection
@@ -1034,7 +1034,7 @@ class CheckoutModal(ctk.CTkToplevel):
                         parent.current_user = fresh_u
             except Exception:
                 pass
-            cashier_name = parent.current_user.full_name or parent.current_user.username or "Diego Amador"
+            cashier_name = parent.current_user.full_name or parent.current_user.username or "Cajero XL Burguer"
 
         user_icon = get_ctk_icon("circle_user_slate", size=(13, 13))
 
@@ -4499,7 +4499,7 @@ class POSFrame(ctk.CTkFrame):
         except Exception:
             pass
 
-        cashier_name = self.current_user.full_name if (self.current_user and self.current_user.full_name) else "Diego Amador"
+        cashier_name = self.current_user.full_name if (self.current_user and self.current_user.full_name) else "Cajero XL Burguer"
         target_customer_id = customer_id or (self.current_customer.id if self.current_customer else None)
 
         try:
@@ -4514,7 +4514,7 @@ class POSFrame(ctk.CTkFrame):
                 )
 
             # Generate formatted receipt with customer, exact operator, and payment method
-            resolved_cashier = sale_detail.user_name or cashier_name or "Diego Amador"
+            resolved_cashier = sale_detail.user_name or cashier_name or "Cajero XL Burguer"
             ticket_text = format_ticket(
                 invoice_number=sale_detail.invoice_number,
                 timestamp=sale_detail.timestamp,

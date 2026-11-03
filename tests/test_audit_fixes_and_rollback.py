@@ -1,4 +1,4 @@
-"""Comprehensive verification and regression test suite for San Diego POS Audit Fixes.
+"""Comprehensive verification and regression test suite for XL Burguer POS Audit Fixes.
 Tests:
 - A1: Scale contract precision and mock isolation in production.
 - A2: Multi-item fiado transaction atomicity and complete rollback.
@@ -42,7 +42,7 @@ class TestAuditFixesAndRollback(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.environ.pop("XLBURGUER_DB_PATH", None)
-        os.environ.pop("SANDIEGO_DB_PATH", None)
+        os.environ.pop("XLBURGUER_DB_PATH", None)
         try:
             cls.temp_dir.cleanup()
         except Exception:
@@ -112,7 +112,7 @@ class TestAuditFixesAndRollback(unittest.TestCase):
             cur.execute(
                 """
                 INSERT INTO customers (document_id, first_name, last_name, phone, customer_type, discount_percent, debt_balance)
-                VALUES ('901234567', 'Restaurante El Boyacense', 'SAS', '3101234567', 'EMPRESA', 0.0, 0.0)
+                VALUES ('901234567', 'Empresa Convenio XL', 'SAS', '3101234567', 'EMPRESA', 0.0, 0.0)
                 """
             )
             self.customer_id = cur.lastrowid

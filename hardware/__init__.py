@@ -1,1 +1,1 @@
-"""Hardware package for Carnicería San Diego."""
+"""Hardware package for XL Burguer POS."""

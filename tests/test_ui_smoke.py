@@ -1,4 +1,4 @@
-"""UI Smoke Test for Carnicería San Diego.
+"""UI Smoke Test for XL Burguer POS.
 Validates that CustomTkinter windows, frames, views, and the new Single-Window App
 instantiate and transition between frames without syntax or runtime errors.
 """

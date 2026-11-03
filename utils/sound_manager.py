@@ -1,4 +1,4 @@
-"""Sound Manager for Carnicería San Diego POS System.
+"""Sound Manager for XL Burguer POS System.
 Provides elegant, professional, non-blocking acoustic feedback:
 - Barcode scanner: crisp single-tone confirmation
 - Item added: warm two-note ascending chime

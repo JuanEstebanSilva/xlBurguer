@@ -1,1 +1,1 @@
-"""Database package for Carnicería San Diego."""
+"""Database package for XL Burguer POS."""

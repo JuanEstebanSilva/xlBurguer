@@ -1,7 +1,7 @@
-"""Design System Tokens & Dark Mode Theme Configuration for Carnicería San Diego POS.
+"""Design System Tokens & Dark Mode Theme Configuration for XL Burguer POS.
 
 Provides an authoritative, centralized dark theme palette inspired by modern
-gourmet steakhouse aesthetics: deep obsidian/charcoal surfaces, warm amber-gold
+fast food and gourmet burguer aesthetics: deep obsidian/charcoal surfaces, warm amber-gold
 brand accents, crisp white typography (WCAG AA/AAA compliant), and emerald-green
 positive indicators for cashier readability and zero eye-strain.
 
@@ -96,7 +96,7 @@ class DarkTheme:
     TEXT_ON_GOLD     = "#0A0A0A"
     TEXT_ON_PRIMARY  = "#0A0A0A"
 
-    # ── PALETA DE COLORES OFICIAL SAN DIEGO ──────────────────────────────────
+    # ── PALETA DE COLORES OFICIAL XL BURGUER ──────────────────────────────────
     # 1. Guardar (Verde)
     PALETTE_GUARDAR_BORDER     = "#80C567"
     PALETTE_GUARDAR_BG         = "#23361C"
@@ -254,7 +254,7 @@ def apply_palette_button(
     normal_image: Optional[Any] = None,
     hover_image: Optional[Any] = None
 ) -> ctk.CTkButton:
-    """Applies the canonical San Diego color palette and Cambria Bold typography to a CTkButton.
+    """Applies the canonical XL Burguer color palette and Cambria Bold typography to a CTkButton.
     When mouse hovers over, dynamically changes text and icon to crisp white (#FFFFFF),
     and restores normal palette color on mouse leave.
     """
@@ -322,7 +322,7 @@ def apply_palette_button(
 
 
 class PaletteButton(ctk.CTkButton):
-    """CTkButton subclass styled natively with the official Carnicería San Diego palette.
+    """CTkButton subclass styled natively with the official XL Burguer palette.
     Supports dynamic white text & icon transition on hover.
     """
     def __init__(

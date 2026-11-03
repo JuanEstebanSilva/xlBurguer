@@ -1,1 +1,1 @@
-"""Utils package for Carnicería San Diego."""
+"""Utils package for XL Burguer POS."""

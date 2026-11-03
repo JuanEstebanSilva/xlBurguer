@@ -89,9 +89,9 @@ def format_ticket(
     if hasattr(invoice_number, "invoice_number") or isinstance(invoice_number, dict):
         sale = invoice_number
         if isinstance(sale, dict):
-            inv_num = sale.get("invoice_number", "SD-000000")
+            inv_num = sale.get("invoice_number", "XL-000000")
             ts = sale.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            c_name = sale.get("user_name") or sale.get("cashier_name") or sale.get("cashier") or "Diego Amador"
+            c_name = sale.get("user_name") or sale.get("cashier_name") or sale.get("cashier") or "Cajero XL Burguer"
             its = sale.get("items", [])
             sub = float(sale.get("subtotal", 0.0))
             tot = float(sale.get("total", 0.0))
@@ -101,9 +101,9 @@ def format_ticket(
             cust_doc = sale.get("customer_document")
             p_method = sale.get("payment_method", "EFECTIVO")
         else:
-            inv_num = getattr(sale, "invoice_number", "SD-000000")
+            inv_num = getattr(sale, "invoice_number", "XL-000000")
             ts = getattr(sale, "timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            c_name = getattr(sale, "user_name", getattr(sale, "cashier_name", getattr(sale, "cashier", "Diego Amador")))
+            c_name = getattr(sale, "user_name", getattr(sale, "cashier_name", getattr(sale, "cashier", "Cajero XL Burguer")))
             its = getattr(sale, "items", [])
             sub = float(getattr(sale, "subtotal", 0.0))
             tot = float(getattr(sale, "total", 0.0))
@@ -128,7 +128,7 @@ def format_ticket(
 
     # Defaults for optional arguments when called with explicit parameters
     timestamp = timestamp or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cashier_name = cashier_name or "Diego Amador"
+    cashier_name = cashier_name or "Cajero XL Burguer"
     items = items or []
     subtotal = float(subtotal if subtotal is not None else 0.0)
     total = float(total if total is not None else subtotal)
@@ -292,11 +292,10 @@ def render_ticket_image(
     ticket_text: str,
     use_dashed_borders: bool = True
 ) -> Image.Image:
-    """Render a pixel-perfect, high-DPI graphical thermal receipt matching Carnicería San Diego branding.
+    """Render a pixel-perfect, high-DPI graphical thermal receipt matching XL Burguer branding.
     Parses 40-col ASCII ticket text and overlays official brand assets:
-      - Isotipo Negro (imgs/isotipoNegro.png) in the header
-      - Elegant italic typography for the Diego Amador quote
-      - Visitanos QR (imgs/qr.png) and Logotipo Negro (imgs/logotipo-negro-2000.png) in the footer
+      - Isotipo Negro / Factura Negro in the header
+      - Visitanos QR (imgs/qr.png) and Logotipo Negro in the footer
     """
     def _load_asset(filename: str) -> Optional[Image.Image]:
         try:
@@ -574,7 +573,7 @@ def _print_raw_ticket(printer_name: str, ticket_clean: str, open_drawer: bool = 
     import win32print  # noqa: PLC0415
     h_printer = win32print.OpenPrinter(printer_name)
     try:
-        win32print.StartDocPrinter(h_printer, 1, ("Factura San Diego", None, "RAW"))
+        win32print.StartDocPrinter(h_printer, 1, ("Factura XL Burguer", None, "RAW"))
         win32print.StartPagePrinter(h_printer)
 
         # ESC/POS sequence:
@@ -667,7 +666,7 @@ def _print_gdi_ticket(printer_name: str, ticket_text: str) -> Tuple[bool, str]:
         target_px_w = int((target_w_mm / 25.4) * dpi_x)
         target_px_h = int(t_img.height * (target_px_w / t_img.width))
 
-        dc.StartDoc("Factura San Diego")
+        dc.StartDoc("Factura XL Burguer")
         dc.StartPage()
 
         dib = ImageWin.Dib(t_img.convert("RGB"))
@@ -682,7 +681,7 @@ def _print_gdi_ticket(printer_name: str, ticket_text: str) -> Tuple[bool, str]:
 
     line_spacing = int(round(h * 1.05))
 
-    dc.StartDoc("Factura San Diego")
+    dc.StartDoc("Factura XL Burguer")
     dc.StartPage()
 
     curr_y = margin_y

@@ -1,6 +1,6 @@
-"""Calendar Date Picker Modal for Carnicería San Diego POS & Analytics.
+"""Calendar Date Picker Modal for XL Burguer POS & Analytics.
 Provides a luxury, dark-themed interactive calendar picker:
-- Standardized modal topbar (San Diego logo + HunzaIA emblem, no close X button)
+- Standardized modal topbar (XL Burguer logo + HunzaIA emblem, no close X button)
 - Centered executive title banner with calendar icon in brand golden-ochre (#C5A059)
 - Month / Year navigation with customized vector icons:
     * Left side: [ Año Ant (⏪) ] [ Mes Ant (◀) ]
@@ -147,7 +147,7 @@ class CalendarPickerModal(ctk.CTkToplevel):
             pass
 
     def _build_header(self, title: str) -> None:
-        """Standardized modal header with San Diego logo, HunzaIA emblem, and centered title."""
+        """Standardized modal header with XL Burguer logo, HunzaIA emblem, and centered title."""
         cal_ico = get_tinted_ctk_icon("calendar_regular_white", "#C5A059", size=(16, 16)) or get_ctk_icon("calendar_regular_white", size=(16, 16))
         build_standard_modal_header(
             parent_modal=self,

@@ -1,5 +1,5 @@
 """Unit tests for single admin constraint, format_encargado, corporate discount,
-and FiadosDashboardModal in Carnicería San Diego.
+and FiadosDashboardModal in XL Burguer.
 """
 
 import os

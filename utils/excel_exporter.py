@@ -285,7 +285,7 @@ def export_sales_async(
                             SELECT 
                                 s.invoice_number,
                                 s.timestamp,
-                                COALESCE(u.full_name, 'Diego Amador') AS cashier_name,
+                                COALESCE(u.full_name, 'Administrador XL') AS cashier_name,
                                 COALESCE(cat.name, 'General') AS category_name,
                                 COALESCE(p.name, 'Producto') AS product_name,
                                 si.quantity,

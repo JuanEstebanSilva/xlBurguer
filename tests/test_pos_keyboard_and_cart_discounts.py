@@ -42,8 +42,7 @@ class TestPOSKeyboardAndCartDiscounts(unittest.TestCase):
                 self.assertTrue(found, f"Frequent product '{item_name}' must be found in database")
 
     def test_category_consolidation(self):
-        """Verify that 'Cortes de Res', 'Cortes de Cerdo', and 'Pollo y Aves' exist,
-        and obsolete 'Cocción Lenta', 'Delantero', 'Trasero' categories do not exist."""
+        """Verify that fast-food categories exist, and butcher categories do not exist."""
         with get_db_connection() as conn:
             cur = conn.cursor()
             cur.execute("SELECT name FROM categories")
@@ -83,7 +82,7 @@ class TestPOSKeyboardAndCartDiscounts(unittest.TestCase):
             product_id=prod_id,
             product_name=prod_name,
             category_id=cat_id,
-            category_name="Cortes de Res",
+            category_name="HAMBURGUESAS",
             sale_type=sale_type,
             quantity=qty1,
             unit_selected=unit,
@@ -103,7 +102,7 @@ class TestPOSKeyboardAndCartDiscounts(unittest.TestCase):
             product_id=prod_id,
             product_name=prod_name,
             category_id=cat_id,
-            category_name="Cortes de Res",
+            category_name="HAMBURGUESAS",
             sale_type=sale_type,
             quantity=qty2,
             unit_selected=unit,
@@ -162,7 +161,7 @@ class TestPOSKeyboardAndCartDiscounts(unittest.TestCase):
                     product_id=prod_id,
                     product_name=prod_name,
                     category_id=cat_id,
-                    category_name="Cortes de Res",
+                    category_name="HAMBURGUESAS",
                     sale_type=sale_type,
                     quantity=qty,
                     unit_selected=unit,

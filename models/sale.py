@@ -393,7 +393,7 @@ class SaleModel:
             # 7. Query user and customer details BEFORE commit to avoid post-commit exceptions (B8)
             cursor.execute("SELECT full_name FROM users WHERE id = ?", (user_id,))
             user_row = cursor.fetchone()
-            user_name = user_row["full_name"] if (user_row and user_row["full_name"]) else "Diego Amador"
+            user_name = user_row["full_name"] if (user_row and user_row["full_name"]) else "Administrador XL"
 
             customer_name = None
             customer_document = None

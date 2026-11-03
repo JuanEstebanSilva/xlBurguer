@@ -1,4 +1,4 @@
-"""Unit tests for the Users / Customers module (Carnicería San Diego).
+"""Unit tests for the Users / Customers module (XL Burguer).
 Verifies CustomerModel statistical aggregations, customer purchase histories,
 receipt linkage, customer updates, and UsersFrame UI initialization.
 """
@@ -287,7 +287,7 @@ class TestUsersModule(unittest.TestCase):
             self.assertIn("Atendido por: Carlos Perez", reprint_ticket)
 
             # Restore original name
-            UserModel.update_user(conn, 1, "admin", "Diego Amador", "ADMIN")
+            UserModel.update_user(conn, 1, "admin", "Administrador XL", "ADMIN")
 
     def test_10_single_administrator_enforcement(self):
         """Verify single-administrator rule at database model level."""
@@ -353,7 +353,7 @@ class TestUsersModule(unittest.TestCase):
             self.assertEqual(inv_frame.export_excel_btn.winfo_manager(), "")
 
             # Switch user to admin dynamically
-            admin_user = User(id=1, username="admin", password_hash="", full_name="Diego Amador", role="ADMIN")
+            admin_user = User(id=1, username="admin", password_hash="", full_name="Administrador XL", role="ADMIN")
             inv_frame.set_current_user(admin_user)
             inv_frame.update_idletasks()
 
