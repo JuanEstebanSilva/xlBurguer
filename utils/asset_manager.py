@@ -23,41 +23,39 @@ _ASSET_ALIASES = {
     "iconoprincipal.jpg": ["logoCompleto.png", "isotipoBlanco.png", "iconoPrincipal.jpg", "logo.png"],
     "icono principal": ["logoCompleto.png", "isotipoBlanco.png", "iconoPrincipal.jpg", "logo.png"],
     "iconoprincipal": ["logoCompleto.png", "isotipoBlanco.png", "iconoPrincipal.jpg", "logo.png"],
-    "logo.png": ["logoCompleto.png", "logoHorizontal.png", "logo.png"],
-    "icono.png": ["icono.png", "icono.ico", "favicon.ico", "logo.png"],
-    "icono": ["icono.png", "icono.ico", "favicon.ico", "logo.png"],
-    "icono.ico": ["icono.png", "icono.ico", "favicon.ico", "logo.ico"],
-    "logo.ico": ["icono.png", "icono.ico", "favicon.ico", "logo.ico"],
-    "favicon.ico": ["icono.png", "favicon.ico", "icono.ico"],
-    "logo xl burguer": ["logoHorizontal.png", "logoCompleto.png"],
-    "logo xlburguer": ["logoHorizontal.png", "logoCompleto.png"],
-    "xl burguer": ["logoHorizontal.png", "logoCompleto.png"],
-    "xlburguer": ["logoHorizontal.png", "logoCompleto.png"],
-    "icono xl burguer": ["logoHorizontal.png", "logoCompleto.png"],
-    "icono xlburguer": ["logoHorizontal.png", "logoCompleto.png"],
-    "icono sandiego": ["logoHorizontal.png", "logoCompleto.png"],
-    "icono san diego": ["logoHorizontal.png", "logoCompleto.png"],
-    "logo sandiego": ["logoCompleto.png", "logoHorizontal.png"],
-    "logo san diego": ["logoCompleto.png", "logoHorizontal.png"],
-    "icono principal bn": ["isotipoBlanco.png", "logoCompleto.png", "selloBlanco.png", "iconoPrincipalBN.jpg"],
-    "icono principal bn.jpg": ["isotipoBlanco.png", "logoCompleto.png", "selloBlanco.png", "iconoPrincipalBN.jpg"],
-    "iconoprincipalbn": ["isotipoBlanco.png", "logoCompleto.png", "selloBlanco.png", "iconoPrincipalBN.jpg"],
-    "iconoprincipalbn.jpg": ["isotipoBlanco.png", "logoCompleto.png", "selloBlanco.png", "iconoPrincipalBN.jpg"],
-    "isotipoblanco": ["isotipoBlanco.png"],
-    "isotiponegro": ["isotipoNegro.png"],
-    "isotipo negro.png": ["isotipoNegro.png"],
-    "isotipo negro": ["isotipoNegro.png"],
-    "isotiponegro.png": ["isotipoNegro.png"],
+    "logo.png": ["logoHorizontal.png", "logoCompleto.png", "XL_Burguer_logo.png"],
+    "icono.png": ["icono.png", "icono_xl.png", "icono.ico", "favicon.ico"],
+    "icono": ["icono.png", "icono_xl.png", "icono.ico", "favicon.ico"],
+    "icono_xl.png": ["icono_xl.png", "icono.png"],
+    "icono_xl.ico": ["icono_xl.ico", "icono.ico"],
+    "icono.ico": ["icono.ico", "icono_xl.ico", "icono.png"],
+    "logo.ico": ["icono.ico", "icono_xl.ico", "icono.png"],
+    "favicon.ico": ["icono.ico", "icono_xl.ico", "icono.png"],
+    "logo xl burguer": ["logoHorizontal.png", "XL_Burguer_horizontal.png", "logoCompleto.png"],
+    "logo xlburguer": ["logoHorizontal.png", "XL_Burguer_horizontal.png", "logoCompleto.png"],
+    "xl burguer": ["logoHorizontal.png", "XL_Burguer_horizontal.png", "logoCompleto.png"],
+    "xlburguer": ["logoHorizontal.png", "XL_Burguer_horizontal.png", "logoCompleto.png"],
+    "icono xl burguer": ["icono.png", "icono_xl.png", "icono.ico"],
+    "icono xlburguer": ["icono.png", "icono_xl.png", "icono.ico"],
+    "logo_factura_negro.png": ["XL_Burguer_factura_negro.png", "logotipo-negro-2000.png"],
+    "logo_factura_negro": ["XL_Burguer_factura_negro.png", "logotipo-negro-2000.png"],
+    "xl_burguer_factura_negro.png": ["XL_Burguer_factura_negro.png", "logotipo-negro-2000.png"],
+    "xl_burguer_isotipo_negro.png": ["XL_Burguer_isotipo_negro.png", "isotipoNegro.png"],
+    "isotipoblanco": ["XL_Burguer_isotipo_blanco.png", "isotipoBlanco.png"],
+    "isotiponegro": ["XL_Burguer_isotipo_negro.png", "isotipoNegro.png"],
+    "isotipo negro.png": ["XL_Burguer_isotipo_negro.png", "isotipoNegro.png"],
+    "isotipo negro": ["XL_Burguer_isotipo_negro.png", "isotipoNegro.png"],
+    "isotiponegro.png": ["XL_Burguer_isotipo_negro.png", "isotipoNegro.png"],
     "qr.png": ["qr.png"],
     "qr": ["qr.png"],
-    "logotipo-negro-2000.png": ["logotipo-negro-2000.png"],
-    "logotipo-negro-2000": ["logotipo-negro-2000.png"],
-    "logotipo negro 2000": ["logotipo-negro-2000.png"],
-    "logotipo negro 2000.png": ["logotipo-negro-2000.png"],
-    "selloblanco": ["selloBlanco.png"],
-    "sellonegro": ["selloNegro.png"],
-    "logocompleto": ["logoCompleto.png"],
-    "logohorizontal": ["logoHorizontal.png"],
+    "logotipo-negro-2000.png": ["XL_Burguer_factura_negro.png", "logotipo-negro-2000.png"],
+    "logotipo-negro-2000": ["XL_Burguer_factura_negro.png", "logotipo-negro-2000.png"],
+    "logotipo negro 2000": ["XL_Burguer_factura_negro.png", "logotipo-negro-2000.png"],
+    "logotipo negro 2000.png": ["XL_Burguer_factura_negro.png", "logotipo-negro-2000.png"],
+    "selloblanco": ["XL_Burguer_isotipo_blanco.png", "isotipoBlanco.png"],
+    "sellonegro": ["XL_Burguer_isotipo_negro.png", "isotipoNegro.png"],
+    "logocompleto": ["logoCompleto.png", "XL_Burguer_completo.png"],
+    "logohorizontal": ["logoHorizontal.png", "XL_Burguer_horizontal.png", "XL_Burguer_logo.png"],
     "flame_active.png": ["flame_active.png"],
     "flame_inactive.png": ["flame_inactive.png"],
     "floppy_green.png": ["floppy_green.png", "floppy-disk-regular-full.svg"],
@@ -778,7 +776,7 @@ def generate_flame_icon(active: bool = True, size: tuple = (48, 48)) -> Image.Im
 
 
 def create_logo(output_path: str) -> None:
-    """Generate a stylized butcher shop emblem with transparent background."""
+    """Generate a stylized XL Burguer emblem with transparent background if missing."""
     size = (600, 600)
     image = Image.new("RGBA", size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
@@ -795,7 +793,7 @@ def create_logo(output_path: str) -> None:
             center_x + radius_outer,
             center_y + radius_outer,
         ],
-        outline=(168, 32, 26, 255),  # #A8201A blood red
+        outline=(239, 68, 68, 255),  # Crimson red #EF4444
         width=8,
     )
 
@@ -808,8 +806,8 @@ def create_logo(output_path: str) -> None:
             center_x + radius_inner,
             center_y + radius_inner,
         ],
-        outline=(217, 119, 6, 220),  # Amber gold accent #D97706
-        width=3,
+        outline=(245, 158, 11, 240),  # Amber gold accent #F59E0B
+        width=4,
     )
 
     # Dark badge fill behind emblem
@@ -820,113 +818,61 @@ def create_logo(output_path: str) -> None:
             center_x + (radius_inner - 4),
             center_y + (radius_inner - 4),
         ],
-        fill=(43, 24, 22, 240),  # #2B1816 deep wine
+        fill=(26, 17, 16, 240),
     )
 
-    # Butcher Cleaver 1 (Left to Right-down)
-    # Handle
-    draw.polygon(
-        [
-            (center_x - 110, center_y + 80),
-            (center_x - 130, center_y + 100),
-            (center_x - 110, center_y + 120),
-            (center_x - 90, center_y + 100),
-        ],
-        fill=(139, 69, 19, 255),
-    )
-    # Cleaver Blade
-    draw.polygon(
-        [
-            (center_x - 90, center_y + 90),
-            (center_x - 15, center_y + 15),
-            (center_x + 55, center_y - 55),
-            (center_x + 15, center_y - 95),
-            (center_x - 70, center_y - 10),
-        ],
-        fill=(220, 225, 230, 240),
-        outline=(168, 32, 26, 255),
-        width=3,
-    )
+    # Typography fonts
+    font_xl = None
+    font_main = None
+    font_sub = None
+    try:
+        font_xl = ImageFont.truetype("arialbd.ttf", 110)
+        font_main = ImageFont.truetype("arialbd.ttf", 32)
+        font_sub = ImageFont.truetype("arial.ttf", 18)
+    except Exception:
+        font_xl = ImageFont.load_default()
+        font_main = ImageFont.load_default()
+        font_sub = ImageFont.load_default()
 
-    # Butcher Knife 2 (Crossing)
-    draw.polygon(
-        [
-            (center_x + 110, center_y + 80),
-            (center_x + 130, center_y + 100),
-            (center_x + 110, center_y + 120),
-            (center_x + 90, center_y + 100),
-        ],
-        fill=(139, 69, 19, 255),
-    )
-    draw.polygon(
-        [
-            (center_x + 90, center_y + 90),
-            (center_x + 10, center_y + 10),
-            (center_x - 60, center_y - 60),
-            (center_x - 30, center_y - 90),
-            (center_x + 70, center_y - 10),
-        ],
-        fill=(240, 242, 245, 255),
-        outline=(217, 119, 6, 255),
-        width=3,
-    )
-
-    # Center steak silhouette stylized element
-    draw.ellipse(
-        [center_x - 45, center_y - 45, center_x + 45, center_y + 45],
-        fill=(168, 32, 26, 255),
-        outline=(244, 235, 217, 255),
-        width=4,
-    )
-    draw.polygon(
-        [
-            (center_x - 22, center_y - 10),
-            (center_x, center_y - 30),
-            (center_x + 22, center_y - 10),
-            (center_x + 14, center_y + 20),
-            (center_x - 14, center_y + 20),
-        ],
-        fill=(244, 235, 217, 255),
+    # Draw "XL" center emblem
+    bbox_xl = draw.textbbox((0, 0), "XL", font=font_xl)
+    xl_w = bbox_xl[2] - bbox_xl[0]
+    xl_h = bbox_xl[3] - bbox_xl[1]
+    draw.text(
+        (center_x - xl_w // 2, center_y - xl_h // 2 - 10),
+        "XL",
+        fill=(245, 158, 11, 255),
+        font=font_xl,
     )
 
     # Decorative banner below emblem
     banner_y = 440
     draw.rectangle(
         [center_x - 240, banner_y - 30, center_x + 240, banner_y + 35],
-        fill=(168, 32, 26, 255),
-        outline=(217, 119, 6, 255),
+        fill=(220, 38, 38, 255),
+        outline=(245, 158, 11, 255),
         width=3,
     )
 
-    # Load system or default font
-    font_main = None
-    font_sub = None
-    try:
-        font_main = ImageFont.truetype("arialbd.ttf", 30)
-        font_sub = ImageFont.truetype("arial.ttf", 18)
-    except Exception:
-        font_main = ImageFont.load_default()
-        font_sub = ImageFont.load_default()
-
-    # Text: CARNICERÍA SAN DIEGO
-    text_main = "CARNICERÍA SAN DIEGO"
+    # Text: XL BURGUER
+    text_main = "XL BURGUER"
     bbox_main = draw.textbbox((0, 0), text_main, font=font_main)
     text_w = bbox_main[2] - bbox_main[0]
     draw.text(
         (center_x - text_w // 2, banner_y - 20),
         text_main,
-        fill=(244, 235, 217, 255),  # Ivory #F4EBD9
+        fill=(255, 255, 255, 255),
         font=font_main,
     )
 
-    # Subtitle: VILLA DE LEYVA - BOYACÁ
-    text_sub = "VILLA DE LEYVA • BOYACÁ • EST. 2024"
+    # Subtitle: COMIDAS RÁPIDAS & HAMBURGUESAS
+    text_sub = "COMIDAS RÁPIDAS & HAMBURGUESAS"
     bbox_sub = draw.textbbox((0, 0), text_sub, font=font_sub)
     sub_w = bbox_sub[2] - bbox_sub[0]
     draw.text(
         (center_x - sub_w // 2, banner_y + 55),
         text_sub,
-        fill=(217, 119, 6, 255),  # Gold amber
+        fill=(245, 158, 11, 255),
         font=font_sub,
     )
 

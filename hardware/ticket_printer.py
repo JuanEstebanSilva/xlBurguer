@@ -307,7 +307,12 @@ def render_ticket_image(
             pass
         return None
 
-    iso_img = _load_asset("XL_Burguer_logo.png") or _load_asset("logoHorizontal.png")
+    iso_img = (
+        _load_asset("XL_Burguer_factura_negro.png")
+        or _load_asset("logotipo-negro-2000.png")
+        or _load_asset("XL_Burguer_logo.png")
+        or _load_asset("logoHorizontal.png")
+    )
     qr_img = None
     logo_img = None
 
